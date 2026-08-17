@@ -1,0 +1,13 @@
+{
+  "id": 10,
+  "department": "Chemistry",
+  "equipment": "FTIR Spectrometer",
+  "amount": 140000,
+  "justification": "Replacement for obsolete model",
+  "vendor": "SpectraTech Inc.",
+  "quotes": [
+    {"vendor": "SpectraTech Inc.", "amount": 140000},
+    {"vendor": "Infrared Solutions", "amount": 145000}
+  ],
+  "status": "draft"
+}

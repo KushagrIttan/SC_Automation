@@ -1,0 +1,13 @@
+{
+  "id": 3,
+  "department": "Physics",
+  "equipment": "Laser System",
+  "amount": 120000,
+  "justification": "New research project requirement",
+  "vendor": "Photonics Corp.",
+  "quotes": [
+    {"vendor": "Photonics Corp.", "amount": 120000},
+    {"vendor": "OptoTech Solutions", "amount": 130000}
+  ],
+  "status": "draft"
+}

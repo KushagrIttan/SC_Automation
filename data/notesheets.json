@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ns001",
+    "request_text": "Purchase of 10 Dell Latitude 5540 laptops for the Computer Science department. Each unit costs ₹85,000. Total budget: ₹8,50,000. Vendor: Dell India. Justification: Replacement of outdated systems for faculty research.",
+    "category": "IT Equipment",
+    "amount": 850000,
+    "draft_text": "1. **Item**: Dell Latitude 5540 Laptops (10 units)\n2. **Vendor**: Dell India\n3. **Unit Cost**: ₹85,000\n4. **Total Cost**: ₹8,50,000\n5. **Justification**: Replacement of outdated systems for faculty research.\n6. **Approval Chain**: HOD → Dean → Registrar → Finance Officer\n7. **Completeness**: 100%\n8. **Status**: approved",
+    "status": "approved",
+    "approvals": [
+      {"reviewer_name": "Dr. A. Sharma", "role": "HOD", "approved_at": "2023-10-15T10:00:00Z"},
+      {"reviewer_name": "Dr. B. Verma", "role": "Dean", "approved_at": "2023-10-16T11:00:00Z"},
+      {"reviewer_name": "Dr. C. Mehta", "role": "Registrar", "approved_at": "2023-10-17T09:00:00Z"},
+      {"reviewer_name": "Dr. D. Kapoor", "role": "Finance Officer", "approved_at": "2023-10-18T14:00:00Z"}
+    ]
+  },
+  {
+    "id": "ns002",
+    "request_text": "Annual maintenance contract for the central server. Vendor: Wipro. Cost: ₹2,50,000. Justification: Ensures 99.9% uptime for student and faculty services.",
+    "category": "IT Services",
+    "amount": 250000,
+    "draft_text": "1. **Service**: Annual Maintenance Contract for Central Server\n2. **Vendor**: Wipro\n3. **Cost**: ₹2,50,000\n4. **Justification**: Ensures 99.9% uptime for student and faculty services.\n5. **Approval Chain**: HOD → Dean\n6. **Completeness**: 100%\n7. **Status**: approved",
+    "status": "approved",
+    "approvals": [
+      {"reviewer_name": "Dr. A. Sharma", "role": "HOD", "approved_at": "2023-11-20T10:00:00Z"},
+      {"reviewer_name": "Dr. B. Verma", "role": "Dean", "approved_at": "2023-11-21T11:00:00Z"}
+    ]
+  }
+]

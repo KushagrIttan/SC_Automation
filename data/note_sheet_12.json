@@ -1,0 +1,13 @@
+{
+  "id": 12,
+  "department": "Biology",
+  "equipment": "Incubator",
+  "amount": 35000,
+  "justification": "Expansion of cell culture facility",
+  "vendor": "BioGrow Systems",
+  "quotes": [
+    {"vendor": "BioGrow Systems", "amount": 35000},
+    {"vendor": "CellTech Innovations", "amount": 37000}
+  ],
+  "status": "draft"
+}

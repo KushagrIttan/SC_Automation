@@ -1,0 +1,13 @@
+{
+  "id": 9,
+  "department": "Biology",
+  "equipment": "PCR Machine",
+  "amount": 65000,
+  "justification": "Increased demand for genetic testing",
+  "vendor": "GeneTech Solutions",
+  "quotes": [
+    {"vendor": "GeneTech Solutions", "amount": 65000},
+    {"vendor": "BioAmp Ltd.", "amount": 68000}
+  ],
+  "status": "draft"
+}

@@ -1,0 +1,13 @@
+{
+  "id": 16,
+  "department": "Chemistry",
+  "equipment": "Atomic Absorption Spectrometer",
+  "amount": 160000,
+  "justification": "Environmental analysis lab upgrade",
+  "vendor": "EnviroTech Instruments",
+  "quotes": [
+    {"vendor": "EnviroTech Instruments", "amount": 160000},
+    {"vendor": "GreenChem Solutions", "amount": 165000}
+  ],
+  "status": "draft"
+}

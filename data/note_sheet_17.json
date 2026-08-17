@@ -1,0 +1,13 @@
+{
+  "id": 17,
+  "department": "Physics",
+  "equipment": "Electrophoresis System",
+  "amount": 85000,
+  "justification": "Protein research expansion",
+  "vendor": "ProteinTech Corp.",
+  "quotes": [
+    {"vendor": "ProteinTech Corp.", "amount": 85000},
+    {"vendor": "BioSep Solutions", "amount": 88000}
+  ],
+  "status": "draft"
+}

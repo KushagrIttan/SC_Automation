@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "department": "Biology",
+  "equipment": "Centrifuge",
+  "amount": 30000,
+  "justification": "Upgrade to high-speed model for research",
+  "vendor": "BioSpin Ltd.",
+  "quotes": [
+    {"vendor": "BioSpin Ltd.", "amount": 30000},
+    {"vendor": "MedEquip Co.", "amount": 32000}
+  ],
+  "status": "draft"
+}

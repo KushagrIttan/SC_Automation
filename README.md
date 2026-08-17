@@ -1,7 +1,15 @@
-# NotesheetAI Phase 1 Frontend
+# NotesheetAI Phase 1
 
-## Theme and Styling Choices
+## Overview
+NotesheetAI automates the generation and approval of notesheets for administrative workflows. This project is divided into backend (FastAPI) and frontend (Streamlit) components.
 
+## Backend
+- **API Contract**: See `API_CONTRACT.md` for endpoints and schemas.
+- **Data**: Synthetic notesheets, GFR rules, checklist, and approval thresholds.
+
+## Frontend
+
+### Theme and Styling Choices
 The Streamlit frontend for NotesheetAI Phase 1 uses a clean, modern design with the following styling choices:
 
 1. **Color Scheme**:
@@ -21,3 +29,17 @@ The Streamlit frontend for NotesheetAI Phase 1 uses a clean, modern design with 
    - Text inputs with rounded borders and padding for a modern look.
 
 These styles are applied using custom CSS injected into the Streamlit app to override default styles and provide a polished user experience.
+
+## Setup
+1. Install dependencies:
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+2. Run the backend:
+   ```bash
+   cd backend && uvicorn app.main:app --reload
+   ```
+3. Run the frontend:
+   ```bash
+   cd frontend && streamlit run app.py
+   ```

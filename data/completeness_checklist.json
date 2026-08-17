@@ -1,0 +1,22 @@
+{
+  "checklist": {
+    "IT Equipment": [
+      "Item description",
+      "Quantity",
+      "Unit cost",
+      "Total cost",
+      "Vendor name",
+      "Justification",
+      "Approval chain"
+    ],
+    "IT Services": [
+      "Service description",
+      "Vendor name",
+      "Contract duration",
+      "Total cost",
+      "SLA details",
+      "Justification",
+      "Approval chain"
+    ]
+  }
+}

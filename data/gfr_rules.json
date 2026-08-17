@@ -1,0 +1,14 @@
+{
+  "rules": [
+    {
+      "id": "gfr-42",
+      "title": "Purchase of IT Equipment",
+      "content": "All purchases of IT equipment must include: (1) Detailed technical specifications, (2) Vendor quotation, (3) Justification for selection, (4) Total cost breakdown."
+    },
+    {
+      "id": "gfr-43",
+      "title": "Annual Maintenance Contracts",
+      "content": "Annual maintenance contracts must specify: (1) Scope of services, (2) Response time SLA, (3) Penalty clauses for downtime, (4) Cost with tax details."
+    }
+  ]
+}

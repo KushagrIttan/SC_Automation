@@ -1,0 +1,13 @@
+{
+  "id": 6,
+  "department": "Biology",
+  "equipment": "Microscopy System",
+  "amount": 180000,
+  "justification": "Upgrade for high-resolution imaging",
+  "vendor": "MicroVision Corp.",
+  "quotes": [
+    {"vendor": "MicroVision Corp.", "amount": 180000},
+    {"vendor": "BioImaging Solutions", "amount": 190000}
+  ],
+  "status": "draft"
+}

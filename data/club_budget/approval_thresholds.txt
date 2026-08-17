@@ -1,0 +1,5 @@
+Approval Thresholds for Club Budget
+
+- $0-$500: Department Head
+- $501-$1000: Dean
+- Above $1001: Finance Committee

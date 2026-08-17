@@ -1,0 +1,13 @@
+{
+  "id": 18,
+  "department": "Biology",
+  "equipment": "Lyophilizer",
+  "amount": 110000,
+  "justification": "Sample preservation for field studies",
+  "vendor": "FreezeDry Systems",
+  "quotes": [
+    {"vendor": "FreezeDry Systems", "amount": 110000},
+    {"vendor": "LyophilTech Innovations", "amount": 115000}
+  ],
+  "status": "draft"
+}

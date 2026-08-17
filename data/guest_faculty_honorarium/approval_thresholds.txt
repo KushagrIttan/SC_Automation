@@ -1,0 +1,5 @@
+Approval Thresholds for Guest Faculty Honorarium
+
+- $0-$1000: Department Head
+- $1001-$2000: Dean
+- Above $2001: Finance Committee

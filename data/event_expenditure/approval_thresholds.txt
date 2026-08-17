@@ -1,0 +1,5 @@
+Approval Thresholds for Event Expenditure
+
+- $0-$5000: Department Head
+- $5001-$10000: Dean
+- Above $10001: Finance Committee

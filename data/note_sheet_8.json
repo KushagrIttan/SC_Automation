@@ -1,0 +1,13 @@
+{
+  "id": 8,
+  "department": "Physics",
+  "equipment": "Cryostat",
+  "amount": 95000,
+  "justification": "Low-temperature sample preparation",
+  "vendor": "CryoSystems Inc.",
+  "quotes": [
+    {"vendor": "CryoSystems Inc.", "amount": 95000},
+    {"vendor": "CoolTech Innovations", "amount": 98000}
+  ],
+  "status": "draft"
+}

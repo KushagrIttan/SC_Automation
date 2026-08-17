@@ -1,0 +1,13 @@
+{
+  "id": 5,
+  "department": "Physics",
+  "equipment": "Vacuum Pump",
+  "amount": 45000,
+  "justification": "Replacement for outdated model",
+  "vendor": "Vacuum Solutions Inc.",
+  "quotes": [
+    {"vendor": "Vacuum Solutions Inc.", "amount": 45000},
+    {"vendor": "PumpTech Ltd.", "amount": 48000}
+  ],
+  "status": "draft"
+}

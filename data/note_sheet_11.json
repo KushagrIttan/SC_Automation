@@ -1,0 +1,13 @@
+{
+  "id": 11,
+  "department": "Physics",
+  "equipment": "Oscilloscope",
+  "amount": 75000,
+  "justification": "New electronics lab setup",
+  "vendor": "Waveform Instruments",
+  "quotes": [
+    {"vendor": "Waveform Instruments", "amount": 75000},
+    {"vendor": "SignalTech Corp.", "amount": 78000}
+  ],
+  "status": "draft"
+}

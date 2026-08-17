@@ -1,0 +1,13 @@
+{
+  "id": 15,
+  "department": "Biology",
+  "equipment": "Flow Cytometer",
+  "amount": 210000,
+  "justification": "New immunology research project",
+  "vendor": "Cytometry Solutions",
+  "quotes": [
+    {"vendor": "Cytometry Solutions", "amount": 210000},
+    {"vendor": "CellSort Technologies", "amount": 220000}
+  ],
+  "status": "draft"
+}

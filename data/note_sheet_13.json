@@ -1,0 +1,13 @@
+{
+  "id": 13,
+  "department": "Chemistry",
+  "equipment": "GC-MS System",
+  "amount": 280000,
+  "justification": "Enhanced chemical analysis capabilities",
+  "vendor": "MassSpec Technologies",
+  "quotes": [
+    {"vendor": "MassSpec Technologies", "amount": 280000},
+    {"vendor": "Chromatography Solutions", "amount": 295000}
+  ],
+  "status": "draft"
+}

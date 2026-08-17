@@ -1,0 +1,13 @@
+{
+  "id": 4,
+  "department": "Chemistry",
+  "equipment": "Refrigerated Centrifuge",
+  "amount": 220000,
+  "justification": "Required for temperature-sensitive sample processing",
+  "vendor": "BioCool Systems",
+  "quotes": [
+    {"vendor": "BioCool Systems", "amount": 220000},
+    {"vendor": "LabTech Innovations", "amount": 235000}
+  ],
+  "status": "draft"
+}

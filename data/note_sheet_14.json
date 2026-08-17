@@ -1,0 +1,13 @@
+{
+  "id": 14,
+  "department": "Physics",
+  "equipment": "Thermal Cycler",
+  "amount": 50000,
+  "justification": "Material science research requirements",
+  "vendor": "Thermotech Ltd.",
+  "quotes": [
+    {"vendor": "Thermotech Ltd.", "amount": 50000},
+    {"vendor": "HeatCycle Systems", "amount": 52000}
+  ],
+  "status": "draft"
+}

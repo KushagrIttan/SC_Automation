@@ -1,0 +1,13 @@
+{
+  "id": 7,
+  "department": "Chemistry",
+  "equipment": "HPLC System",
+  "amount": 310000,
+  "justification": "New research grant requirement",
+  "vendor": "ChromTech Systems",
+  "quotes": [
+    {"vendor": "ChromTech Systems", "amount": 310000},
+    {"vendor": "Analytica Solutions", "amount": 325000}
+  ],
+  "status": "draft"
+}

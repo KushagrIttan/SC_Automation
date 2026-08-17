@@ -1,0 +1,13 @@
+{
+  "id": 1,
+  "department": "Chemistry",
+  "equipment": "Spectrometer",
+  "amount": 15000,
+  "justification": "Replacement for malfunctioning unit",
+  "vendor": "SciTech Instruments",
+  "quotes": [
+    {"vendor": "SciTech Instruments", "amount": 15000},
+    {"vendor": "LabSolutions Inc.", "amount": 18000}
+  ],
+  "status": "draft"
+}
