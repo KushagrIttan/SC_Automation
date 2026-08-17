@@ -1,0 +1,33 @@
+# NotesheetAI
+# Git Ignore
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+*.pyo
+*.pyd
+
+# IDEs
+.idea/
+.vscode/
+*.sln
+*.suo
+*.user
+
+# Cache
+.streamlit/
+cache/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Local env
+.env
+
+# Data backups
+*.bak
+
+# SQLite journals
+*.db-journal
