@@ -29,5 +29,11 @@ Thumbs.db
 # Data backups
 *.bak
 
-# SQLite journals
-*.db-journal
+# Local logs and databases
+*.log
+backend/*.log
+*.db
+backend/notesheet.db
+backend/data/
+.hermes/
+nul

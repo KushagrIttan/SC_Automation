@@ -1,18 +1,32 @@
 import os
-from fastapi import FastAPI, HTTPException
+import time
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 import json
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import ollama
+from .database import get_db, Prof, ApprovalStage, StageApprover, Base, engine
+from .approval_api import router as approval_router
 
 app = FastAPI()
+
+# Health check
+@app.get('/health')
+def health_check():
+    return {"status": "ok"}
+
+# Include approval API routes
+app.include_router(approval_router, prefix="/api")
+# Include approval API routes
+app.include_router(approval_router, prefix="/api")
 
 # Configuration - move to config.py in production
 CONFIG = {
     "OLLAMA_BASE_URL": os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-    "OLLAMA_MODEL": 'qwen2.5-coder:3b',
+    "OLLAMA_MODEL": 'hf.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF:Q4_K_M',
     "EMBEDDING_MODEL": 'all-MiniLM-L6-v2',
     "DATA_DIR": os.path.join(os.path.dirname(__file__), '..', 'data')
 }
@@ -84,7 +98,7 @@ def extract_request_details(request_text: str, category: str):
                 details['department'] = parts[i+1]
     elif category == 'event_expenditure':
         # New logic for events
-        # ... (implement event-specific extraction)
+        pass  # Implement event-specific extraction
     # Add logic for other categories
     return details
 
@@ -125,51 +139,65 @@ def generate_template(request_details, category):
     return template
 
 @app.post('/api/notesheets/generate')
-async def generate_notesheet(request: NotesheetRequest):
-    if request.category not in categories:
-        raise HTTPException(400, 'Invalid category')
-
-    request_details = extract_request_details(request.request_text, request.category)
-
-    # Precedent retrieval
-    query_embedding = model.encode(f"{request.category}: {request.request_text}")
+async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(get_db)):
     try:
-        distances, indices = index.search(np.array([query_embedding]), 3)
+        if request.category not in categories:
+            raise HTTPException(400, 'Invalid category')
+
+        request_details = extract_request_details(request.request_text, request.category)
+
+        # Precedent retrieval
+        query_embedding = model.encode(f"{request.category}: {request.request_text}")
+        try:
+            distances, indices = index.search(np.array([query_embedding]), 3)
+        except Exception as e:
+            # Handle empty index or FAISS errors
+            top_precedents = []
+        else:
+            top_precedents = [note_texts[i] for i in indices[0] if i < len(note_texts)]
+
+        draft_result = draft_notesheet(request_details, top_precedents, request.category)
+
+        # Completeness check
+        checklist = category_meta.get(request.category, {}).get('checklist', [])
+        documents_missing = [item for item in checklist if item not in request_details.get('documents', [])]
+
+        # Approval chain
+        amount = request_details.get('amount', 0)
+        approval_chain = get_approval_chain(amount, request.category)
+
+        # Return response with draft source
+        # Convert precedents to serializable format
+        precedents_serializable = []
+        for p in top_precedents:
+            if isinstance(p, tuple) and len(p) >= 2:
+                cat, note_dict = p[0], p[1]
+                precedents_serializable.append({
+                    'category': cat,
+                    'id': note_dict.get('id', 'unknown'),
+                    'excerpt': note_dict.get('content', '')[:200] + '...' if len(note_dict.get('content', '')) > 200 else note_dict.get('content', '')
+                })
+        
+        return {
+            'id': f"NS-{int(time.time())}",
+            'request_text': request.request_text,
+            'category': request.category,
+            'draft_text': draft_result['draft_text'],
+            'draft_source': draft_result['draft_source'],
+            'precedents_used': precedents_serializable,
+            'rules_cited': draft_result.get('rules_cited', []),
+            'documents_missing': documents_missing,
+            'approval_chain': approval_chain,
+            'status': 'draft',
+            'error': draft_result.get('error')
+        }
     except Exception as e:
-        # Handle empty index or FAISS errors
-        top_precedents = []
-    else:
-        top_precedents = [note_texts[i] for i in indices[0] if i < len(note_texts)]
-
-    draft_result = draft_notesheet(request_details, top_precedents, request.category)
-
-    # Completeness check
-    checklist = category_meta.get(request.category, {}).get('checklist', [])
-    documents_missing = [item for item in checklist if item not in request_details.get('documents', [])]
-
-    # Approval chain
-    amount = request_details.get('amount', 0)
-    approval_chain = get_approval_chain(amount, request.category)
-
-    # Return response with draft source
-    return {
-        'id': f"NS-{int(time.time())}",  # Simple ID for demo
-        'request_text': request.request_text,
-        'category': request.category,
-        'draft_text': draft_result['draft_text'],
-        'draft_source': draft_result['draft_source'],
-        'precedents_used': top_precedents,
-        'rules_cited': draft_result.get('rules_cited', []),
-        'documents_missing': documents_missing,
-        'approval_chain': approval_chain,
-        'status': 'draft',
-        'error': draft_result.get('error')
-    }
-
-# Budget endpoint placeholder
-@app.post('/api/budget')
-async def calculate_budget(line_items: list):
-    # Implement budget calculation
-    return {'total': 0, 'gst': 0, 'grand_total': 0}
-
-# ... Implement other Phase 2 endpoints
+        import traceback
+        print("="*80)
+        print("EXCEPTION IN generate_notesheet:")
+        print(f"Type: {type(e).__name__}")
+        print(f"Message: {str(e)}")
+        print("="*80)
+        traceback.print_exc()
+        print("="*80)
+        raise HTTPException(500, f"Internal error: {str(e)}")
