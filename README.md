@@ -1,45 +1,66 @@
-# NotesheetAI Phase 1
+# NotesheetAI — Policy-Driven Approval & Note-Sheet Automation
 
-## Overview
-NotesheetAI automates the generation and approval of notesheets for administrative workflows. This project is divided into backend (FastAPI) and frontend (Streamlit) components.
+NotesheetAI is an intelligent, explainable platform designed for administrative note-sheet generation, precedent matching, policy compliance verification, and multi-stage approval workflows.
 
-## Backend
-- **API Contract**: See `API_CONTRACT.md` for endpoints and schemas.
-- **Data**: Synthetic notesheets, GFR rules, checklist, and approval thresholds.
+---
 
-## Frontend
+## 🌟 Key Features
 
-### Theme and Styling Choices
-The Streamlit frontend for NotesheetAI Phase 1 uses a clean, modern design with the following styling choices:
+1. **Automatic Note Sheet Generation**: Generates formal, policy-compliant administrative drafts using local LLMs (Ollama) tailored to specific request categories (e.g., event expenditure, procurement, academic approvals).
+2. **Precedent Retrieval**: Vector search powered by FAISS and SentenceTransformers (`all-MiniLM-L6-v2`) to surface historical note-sheets and past decision context.
+3. **Wording & Phrasing Recommendations**: Context-aware phrasing improvements for official administrative tone.
+4. **Budget & Expenditure Estimation**: Automated line-item breakdown with GST calculations and financial threshold checks.
+5. **Rule & Statute Referencing**: Automatic citation of General Financial Rules (GFR Rule 153) and institutional ordinances.
+6. **Multi-Stage Approval Pipeline**: Interactive tracking and management of approval chains across departmental authorities.
+7. **Missing Document Checklist**: Automatic verification of required supporting attachments before submission.
+8. **Explainable AI Justifications**: Audit-ready explanation breakdown for precedent selection, rule compliance, and budget rationale.
 
-1. **Color Scheme**:
-   - Primary color: Blue (`#007bff`) for buttons and interactive elements.
-   - Background color: Light gray (`#f8f9fa`) for input fields.
-   - Approval chain section: Light gray (`#e9ecef`) with rounded corners.
+---
 
-2. **Typography**:
-   - Font size: 16px for body text with a line height of 1.6 for readability.
+## 🏗 System Architecture
 
-3. **Layout**:
-   - Responsive design with Streamlit's built-in grid system.
-   - Approval chain displayed in a styled container with padding and rounded borders.
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/), [SQLAlchemy](https://www.sqlalchemy.org/), [SentenceTransformers](https://www.sbert.net/), [FAISS](https://github.com/facebookresearch/faiss), and [Ollama](https://ollama.com/)
+- **Frontend**: [React 18](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), and [Tailwind CSS](https://tailwindcss.com/) located in [`frontend-react/`](file:///c:/Users/Kushagr/Documents/NotesheetAI/frontend-react)
 
-4. **Interactive Elements**:
-   - Rounded buttons with padding for better clickability.
-   - Text inputs with rounded borders and padding for a modern look.
+---
 
-These styles are applied using custom CSS injected into the Streamlit app to override default styles and provide a polished user experience.
+## 🚀 Quick Start
 
-## Setup
-1. Install dependencies:
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
-2. Run the backend:
-   ```bash
-   cd backend && uvicorn app.main:app --reload
-   ```
-3. Run the frontend:
-   ```bash
-   cd frontend && streamlit run app.py
-   ```
+### 1. Prerequisites
+- Python 3.10+
+- Node.js 18+ and npm
+- Ollama (running locally with `bartowski/microsoft_Phi-4-mini-instruct-GGUF` or `qwen2.5-coder:3b`)
+
+### 2. Backend Setup
+```bash
+cd backend
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+source .venv/bin/activate
+
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 3. Frontend Setup (React)
+```bash
+cd frontend-react
+npm install
+npm start
+```
+The React frontend will be available at `http://localhost:3000`.
+
+---
+
+## 🧪 Verification & Build Commands
+
+- **Frontend Production Build**:
+  ```bash
+  npm --prefix frontend-react run build
+  ```
+- **Backend Health Check**:
+  ```bash
+  curl http://localhost:8000/health
+  ```
