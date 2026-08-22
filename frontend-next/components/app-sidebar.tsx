@@ -23,7 +23,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { UserSettingsMenu } from "@/components/user-settings-menu"
 
 const primaryNav = [
   { title: "New Request", href: "/new-request", icon: FilePlus2 },
@@ -42,21 +44,24 @@ export function AppSidebar() {
   const pathname = usePathname()
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-3 py-3.5">
-        <Link href="/new-request" className="flex items-center gap-2.5 overflow-hidden px-1">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-sm border border-primary/30 bg-primary/10 text-primary">
-            <Stamp className="size-4" />
-          </span>
-          <span className="flex flex-col overflow-hidden leading-none">
-            <span className="truncate font-serif text-sm font-semibold tracking-wide text-sidebar-foreground">
-              Sanction Desk
+    <Sidebar collapsible="icon" className="border-r-0">
+      <SidebarHeader className="px-3 py-3.5 group-data-[collapsible=icon]:px-2">
+        <div className="flex items-center gap-2.5 overflow-hidden">
+          <Link href="/new-request" className="flex min-w-0 items-center gap-2.5 overflow-hidden px-1 group-data-[collapsible=icon]:hidden">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-sm border border-primary/30 bg-primary/10 text-primary">
+              <Stamp className="size-4" />
             </span>
-            <span className="truncate font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              Office of the Dean
+            <span className="flex flex-col overflow-hidden leading-none">
+              <span className="truncate font-serif text-sm font-semibold tracking-wide text-sidebar-foreground">
+                Sanction Desk
+              </span>
+              <span className="truncate font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                Office of the Dean
+              </span>
             </span>
-          </span>
-        </Link>
+          </Link>
+          <SidebarTrigger className="ml-auto shrink-0 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto" />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -117,16 +122,8 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
-        <div className="flex items-center gap-2.5 overflow-hidden rounded-sm px-1 py-1">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-[11px] text-secondary-foreground">
-            AB
-          </span>
-          <span className="flex flex-col overflow-hidden leading-none">
-            <span className="truncate text-xs font-medium">Ananya Bhardwaj</span>
-            <span className="truncate font-mono text-[10px] text-muted-foreground">Student Cell · Requester</span>
-          </span>
-        </div>
+      <SidebarFooter className="px-3 py-3">
+        <UserSettingsMenu />
       </SidebarFooter>
     </Sidebar>
   )

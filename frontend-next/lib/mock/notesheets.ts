@@ -247,6 +247,12 @@ export const noteSheets: NoteSheet[] = [
   },
 ]
 
+// A seeded human revision lets the version-comparison view demonstrate real
+// additions and deletions before a requester starts editing their own draft.
+noteSheets[0].editedText = noteSheets[0].draftText
+  .replace("has proposed procurement of four", "seeks approval for the procurement of four")
+  .replace("It is requested that sanction be accorded", "It is respectfully requested that sanction be accorded")
+
 function pendingApprover(id: string) {
   return getApprover(id)
 }

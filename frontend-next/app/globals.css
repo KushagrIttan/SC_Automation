@@ -59,8 +59,8 @@
   --popover-foreground: oklch(0.94 0.006 90);
   --primary: oklch(0.74 0.13 76);
   --primary-foreground: oklch(0.18 0.03 76);
-  --secondary: oklch(0.255 0.006 265);
-  --secondary-foreground: oklch(0.94 0.006 90);
+  --secondary: #C19A6B;
+  --secondary-foreground: oklch(0.14 0.01 265);
   --muted: oklch(0.225 0.006 265);
   --muted-foreground: oklch(0.62 0.012 90);
   --accent: oklch(0.63 0.09 152);
@@ -84,6 +84,43 @@
   --sidebar-accent-foreground: oklch(0.94 0.006 90);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.74 0.13 76);
+}
+
+html.light {
+  color-scheme: light;
+  --background: oklch(0.955 0.008 82);
+  --foreground: oklch(0.235 0.018 252);
+  --card: oklch(0.985 0.004 85);
+  --card-foreground: oklch(0.235 0.018 252);
+  --popover: oklch(0.985 0.004 85);
+  --popover-foreground: oklch(0.235 0.018 252);
+  --primary: oklch(0.32 0.055 252);
+  --primary-foreground: oklch(0.985 0.004 85);
+  --secondary: oklch(0.9 0.012 82);
+  --secondary-foreground: oklch(0.27 0.018 252);
+  --muted: oklch(0.925 0.01 82);
+  --muted-foreground: oklch(0.48 0.018 252);
+  --accent: oklch(0.43 0.045 154);
+  --accent-foreground: oklch(0.985 0.004 85);
+  --destructive: oklch(0.47 0.1 28);
+  --destructive-foreground: oklch(0.985 0.004 85);
+  --border: oklch(0.72 0.015 78);
+  --input: oklch(0.78 0.014 78);
+  --ring: oklch(0.32 0.055 252);
+  --sidebar: oklch(0.925 0.014 82);
+  --sidebar-foreground: oklch(0.235 0.018 252);
+  --sidebar-primary: oklch(0.32 0.055 252);
+  --sidebar-primary-foreground: oklch(0.985 0.004 85);
+  --sidebar-accent: oklch(0.875 0.022 82);
+  --sidebar-accent-foreground: oklch(0.235 0.018 252);
+  --sidebar-border: transparent;
+  --sidebar-ring: oklch(0.32 0.055 252);
+  /* Muted reporting colours: keep charts supportive of the records, not dominant. */
+  --chart-1: oklch(0.69 0.055 252);
+  --chart-2: oklch(0.67 0.045 154);
+  --chart-3: oklch(0.7 0.035 220);
+  --chart-4: oklch(0.68 0.055 28);
+  --chart-5: oklch(0.64 0.012 90);
 }
 
 @layer base {

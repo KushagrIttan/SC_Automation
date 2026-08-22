@@ -1,5 +1,4 @@
-import { noteSheets } from "@/lib/mock/notesheets"
-import { precedentLibrary } from "@/lib/mock/precedents"
+import { fetchApi } from "@/lib/api-client"
 import type { NoteSheet, NoteSheetCategory } from "@/lib/types"
 
 export interface GenerateDraftInput {
@@ -9,35 +8,75 @@ export interface GenerateDraftInput {
   amountHint?: number
 }
 
-// Simulates what a RAG + LLM drafting pipeline would return: it picks the
-// closest template for the chosen category from the note-sheet corpus and
-// re-labels it against the requester's actual input so the demo reflects
-// what was typed, without needing a live model call.
-export function generateDraft(input: GenerateDraftInput): NoteSheet {
-  const template =
-    noteSheets.find((n) => n.category === input.category && n.status !== "Draft") ??
-    noteSheets[0]
+// Helper to convert display category to backend enum format
+function toBackendCategory(cat: string): string {
+  if (cat === "Event/Fest Expenditure") return "event_expenditure"
+  if (cat === "Student Travel/TA-DA") return "student_travel"
+  if (cat === "Club Budget") return "club_budget"
+  if (cat === "Guest Faculty Honorarium") return "guest_faculty_honorarium"
+  return "lab_equipment_purchase"
+}
 
-  const matchedPrecedents = precedentLibrary.filter((p) => p.category === input.category).slice(0, 2)
-  const amount = input.amountHint && input.amountHint > 0 ? input.amountHint : template.amount
+export async function generateDraft(input: GenerateDraftInput): Promise<NoteSheet> {
+  const backendCat = toBackendCategory(input.category)
+  
+  // Call real backend
+  const response = await fetchApi<any>("/api/notesheets/generate", {
+    method: "POST",
+    body: JSON.stringify({
+      request_text: input.prompt,
+      category: backendCat,
+    }),
+  })
+
+  // Map backend response to frontend NoteSheet type
+  const amount = response.amount || input.amountHint || 0
 
   return {
-    ...template,
-    id: `draft-${Date.now()}`,
+    id: response.id,
     subject: deriveSubject(input.prompt, input.category),
-    department: input.department || template.department,
-    amount,
+    category: input.category,
+    requester: "Current User",
+    department: input.department || "Engineering",
+    amount: amount,
     status: "Draft",
     currentStage: "Not yet submitted",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     prompt: input.prompt,
-    justification: template.justification,
-    precedentIds: matchedPrecedents.length ? matchedPrecedents.map((p) => p.id) : template.precedentIds,
-    approvalStages: template.approvalStages.map((stage) => ({
-      ...stage,
-      approvers: stage.approvers.map((a) => ({ ...a, status: "Pending" as const, signature: undefined, signedAt: undefined, rejectionReason: undefined })),
+    draftText: response.draft_text,
+    justification: `AI Draft generated via ${response.draft_source || 'system'}.`,
+    aiReasoning: "",
+    budgetItems: [], // The text contains the budget if requested
+    citations: (response.rules_cited || []).map((rule: any, idx: number) => ({
+      id: `rule-${idx}`,
+      code: rule.rule_number || `Rule ${idx + 1}`,
+      title: rule.title || "Applicable Rule",
+      excerpt: rule.excerpt || rule,
+      sourceDoc: "Institutional Guidelines",
     })),
+    requiredDocuments: (response.documents_missing || []).map((doc: string, idx: number) => ({
+      id: `doc-${idx}`,
+      name: doc,
+      attached: false,
+    })),
+    wordingSuggestions: [],
+    approvalStages: (response.approval_chain || []).map((role: string, idx: number) => ({
+      id: `stage-${idx}`,
+      name: `${role} Approval`,
+      order: idx + 1,
+      approvers: [
+        {
+          id: `approver-${idx}`,
+          name: `Pending ${role}`,
+          position: role,
+          department: "University",
+          status: "Pending",
+          recommended: true,
+        },
+      ],
+    })),
+    precedentIds: (response.precedents_used || []).map((p: any) => p.id),
   }
 }
 

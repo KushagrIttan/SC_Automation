@@ -15,6 +15,7 @@ import { WordingSuggestions } from "@/components/notesheet/wording-suggestions"
 import { AiReasoningPanel } from "@/components/notesheet/ai-reasoning-panel"
 import { ApprovalStepper } from "@/components/notesheet/approval-stepper"
 import { ComparePrecedentDialog } from "@/components/notesheet/compare-precedent-dialog"
+import { VersionComparison } from "@/components/notesheet/version-comparison"
 import { formatDate, formatINR } from "@/lib/format"
 import type { NoteSheet } from "@/lib/types"
 
@@ -23,13 +24,18 @@ export function NoteSheetDetail({
   showApprovalChain = true,
   headerAction,
   approvalPanel,
+  approvalChain,
+  approvalChainBelowJustification = false,
 }: {
   noteSheet: NoteSheet
   showApprovalChain?: boolean
   headerAction?: React.ReactNode
   approvalPanel?: React.ReactNode
+  approvalChain?: React.ReactNode
+  approvalChainBelowJustification?: boolean
 }) {
   const [editing, setEditing] = useState(false)
+  const [comparing, setComparing] = useState(false)
   const [editedText, setEditedText] = useState(noteSheet.editedText ?? noteSheet.draftText)
 
   return (
@@ -67,9 +73,14 @@ export function NoteSheetDetail({
                 <Button size="sm" variant="ghost" className="h-7" onClick={() => setEditing((v) => !v)}>
                   {editing ? "Preview" : "Edit text"}
                 </Button>
+                <Button size="sm" variant={comparing ? "secondary" : "ghost"} className="h-7" onClick={() => { setComparing((value) => !value); setEditing(false) }}>
+                  {comparing ? "Close comparison" : "Compare versions"}
+                </Button>
               </div>
             </div>
-            {editing ? (
+            {comparing ? (
+              <VersionComparison originalText={noteSheet.draftText} editedText={editedText} />
+            ) : editing ? (
               <Textarea
                 value={editedText}
                 onChange={(e) => setEditedText(e.target.value)}
@@ -105,6 +116,21 @@ export function NoteSheetDetail({
             <p className="text-pretty text-sm leading-relaxed text-muted-foreground">{noteSheet.justification}</p>
           </CardContent>
         </Card>
+
+        {approvalChainBelowJustification && approvalChain && (
+          <Card className="mt-3 border-primary/30 bg-primary/[0.025] shadow-sm">
+            <CardHeader className="border-b border-primary/15 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <FileCheck2 className="size-4 text-primary" />
+                Approval chain
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Confirm the recommended routing before submitting this note sheet for approval.
+              </p>
+            </CardHeader>
+            <CardContent className="pt-5">{approvalChain}</CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Sidebar column */}
@@ -135,18 +161,18 @@ export function NoteSheetDetail({
 
         {approvalPanel}
 
-        {showApprovalChain && (
+        {!approvalChainBelowJustification && (showApprovalChain || approvalChain) && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Approval chain</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <ApprovalStepper stages={noteSheet.approvalStages} />
+              {approvalChain ?? <ApprovalStepper stages={noteSheet.approvalStages} />}
             </CardContent>
             <Separator className="my-1" />
-            <CardContent className="pt-3 text-[11px] text-muted-foreground">
+            {showApprovalChain && <CardContent className="pt-3 text-[11px] text-muted-foreground">
               Current stage: <span className="font-medium text-foreground">{noteSheet.currentStage}</span>
-            </CardContent>
+            </CardContent>}
           </Card>
         )}
       </div>

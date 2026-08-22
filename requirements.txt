@@ -5,18 +5,16 @@ pydantic>=2.0.0
 pydantic-settings>=2.0.0
 requests>=2.31.0
 aiofiles>=23.0.0
+python-dotenv>=1.0.0
 
 # Embeddings & retrieval (CPU-only torch to save disk)
-torch
---extra-index-url https://download.pytorch.org/whl/cpu
+torch --extra-index-url https://download.pytorch.org/whl/cpu
 sentence-transformers>=2.2.0
 faiss-cpu>=1.7.4
 
 # LLM backends
 google-generativeai>=0.5.0
-
-# Frontend
-streamlit>=1.30.0
+ollama>=0.1.6
 
 # Utilities
 numpy>=1.24.0

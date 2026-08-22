@@ -1,11 +1,18 @@
-import { approverDirectory } from "@/lib/mock/approvers"
+import { fetchApi } from "@/lib/api-client"
 import type { Approver } from "@/lib/types"
 
-function delay(ms = 300) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 export async function fetchApproverDirectory(): Promise<Approver[]> {
-  await delay()
-  return JSON.parse(JSON.stringify(approverDirectory))
+  try {
+    const data = await fetchApi<any[]>("/api/profs")
+    return data.map((prof) => ({
+      id: `prof-${prof.id}`,
+      name: prof.name,
+      position: prof.position || "Professor",
+      department: "University", // Backend model doesn't have department
+      status: "Pending"
+    }))
+  } catch (error) {
+    console.error("Failed to fetch approvers:", error)
+    return []
+  }
 }

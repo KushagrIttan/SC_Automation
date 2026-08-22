@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { NoteSheetDetail } from "@/components/notesheet/notesheet-detail"
+import { ApprovalStepper } from "@/components/notesheet/approval-stepper"
 import { generateDraft } from "@/lib/generate-draft"
 import type { NoteSheet, NoteSheetCategory } from "@/lib/types"
 import { toast } from "sonner"
@@ -29,6 +30,7 @@ export function NewRequestForm() {
   const [amount, setAmount] = useState("")
   const [generating, setGenerating] = useState(false)
   const [draft, setDraft] = useState<NoteSheet | null>(null)
+  const [selectedApproverIds, setSelectedApproverIds] = useState<string[]>([])
 
   async function handleGenerate() {
     if (!prompt.trim()) {
@@ -37,21 +39,33 @@ export function NewRequestForm() {
     }
     setGenerating(true)
     setDraft(null)
-    await new Promise((r) => setTimeout(r, 1400))
-    const result = generateDraft({
-      prompt,
-      category,
-      department,
-      amountHint: amount ? Number(amount) : undefined,
-    })
-    setDraft(result)
-    setGenerating(false)
-    toast.success("Draft generated with citations and budget breakdown.")
+    try {
+      const result = await generateDraft({
+        prompt,
+        category,
+        department,
+        amountHint: amount ? Number(amount) : undefined,
+      })
+      setDraft(result)
+      setSelectedApproverIds(
+        result.approvalStages.flatMap((stage) =>
+          stage.approvers.filter((approver) => approver.recommended).map((approver) => approver.id),
+        ),
+      )
+      toast.success("Draft generated with citations and budget breakdown.")
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to generate draft. Please check your backend connection.")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   }
 
   function handleSubmitForApproval() {
     toast.success("Note sheet submitted for departmental review.", {
-      description: draft?.subject,
+      description: `${selectedApproverIds.length} approver${selectedApproverIds.length === 1 ? "" : "s"} selected for routing.`,
     })
   }
 
@@ -140,6 +154,14 @@ export function NewRequestForm() {
         <NoteSheetDetail
           noteSheet={draft}
           showApprovalChain={false}
+          approvalChainBelowJustification
+          approvalChain={
+            <ApprovalStepper
+              stages={draft.approvalStages}
+              selectedApproverIds={selectedApproverIds}
+              onSelectedApproverIdsChange={setSelectedApproverIds}
+            />
+          }
           headerAction={
             <Button size="sm" onClick={handleSubmitForApproval}>
               <Send data-icon="inline-start" />

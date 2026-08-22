@@ -1,135 +1,181 @@
+"""NotesheetAI — FastAPI backend with Ollama / Gemini support."""
+
+import json
+import logging
 import os
 import time
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-import json
+import traceback
+from datetime import datetime
+
 import faiss
 import numpy as np
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
-import ollama
-from .database import get_db, Prof, ApprovalStage, StageApprover, Base, engine
+from sqlalchemy.orm import Session
+from typing import Optional, List
+
+from .config import settings
+from .database import get_db, Prof, ApprovalStage, StageApprover, Notesheet, Base, engine
 from .approval_api import router as approval_router
+from .llm import get_llm_provider, switch_provider
 
-app = FastAPI()
+log = logging.getLogger(__name__)
 
-# Health check
-@app.get('/health')
-def health_check():
-    return {"status": "ok"}
+# ---------------------------------------------------------------------------
+# App setup
+# ---------------------------------------------------------------------------
 
-# Include approval API routes
+app = FastAPI(title="NotesheetAI", version="1.0.0")
+
+# CORS — allow the frontend origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include approval sub-router (once!)
 app.include_router(approval_router, prefix="/api")
-# Include approval API routes
-app.include_router(approval_router, prefix="/api")
 
-# Configuration - move to config.py in production
-CONFIG = {
-    "OLLAMA_BASE_URL": os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-    "OLLAMA_MODEL": 'hf.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF:Q4_K_M',
-    "EMBEDDING_MODEL": 'all-MiniLM-L6-v2',
-    "DATA_DIR": os.path.join(os.path.dirname(__file__), '..', 'data')
-}
+# ---------------------------------------------------------------------------
+# Startup: embeddings, FAISS, category metadata
+# ---------------------------------------------------------------------------
 
-# Load categories and data paths
-categories = ['lab_equipment_purchase', 'event_expenditure', 'guest_faculty_honorarium', 'student_travel', 'club_budget']
+categories = [
+    "lab_equipment_purchase",
+    "event_expenditure",
+    "guest_faculty_honorarium",
+    "student_travel",
+    "club_budget",
+]
 
-# Initialize embedding model and FAISS index
-model = SentenceTransformer(CONFIG['EMBEDDING_MODEL'])
-index = faiss.IndexFlatL2(model.get_sentence_embedding_dimension())
+# Embedding model + FAISS index (populated at import time)
+embedding_model = SentenceTransformer(settings.embedding_model)
+faiss_index = faiss.IndexFlatL2(embedding_model.get_sentence_embedding_dimension())
 
-# Load all historical note sheets into FAISS
-all_embeddings = []
-note_texts = []
-for category in categories:
-    category_dir = os.path.join(CONFIG['DATA_DIR'], category)
-    notes_file = os.path.join(category_dir, 'notesheets.json')
-    if not os.path.exists(notes_file):
-        continue  # Handle missing files gracefully
-    with open(notes_file) as f:
-        notes = json.load(f)
-    for note in notes:
-        text = note.get('content', '')  # Use empty string if 'content' missing
-        note_texts.append((category, note))
-        all_embeddings.append(model.encode(text))
+all_embeddings: list = []
+note_texts: list = []  # list of (category, note_dict)
 
-if len(all_embeddings) > 0:
-    all_embeddings = np.stack(all_embeddings)
-    index.add(all_embeddings)
+for _cat in categories:
+    _cat_dir = os.path.join(settings.data_dir, _cat)
+    _notes_file = os.path.join(_cat_dir, "notesheets.json")
+    if not os.path.exists(_notes_file):
+        continue
+    with open(_notes_file) as f:
+        _notes = json.load(f)
+    for _note in _notes:
+        _text = _note.get("content", "")
+        note_texts.append((_cat, _note))
+        all_embeddings.append(embedding_model.encode(_text))
 
-# Load rules and checklists per category
-category_meta = {}
-for category in categories:
-    category_dir = os.path.join(CONFIG['DATA_DIR'], category)
-    category_meta[category] = {}
-    # Load GFR rules
-    rules_path = os.path.join(category_dir, 'gfr_rules.json')
-    if os.path.exists(rules_path):
-        with open(rules_path) as f:
-            category_meta[category]['rules'] = json.load(f)
-    # Load completeness checklist
-    checklist_path = os.path.join(category_dir, 'completeness_checklist.json')
-    if os.path.exists(checklist_path):
-        with open(checklist_path) as f:
-            category_meta[category]['checklist'] = json.load(f)
-    # Load approval thresholds
-    thresholds_path = os.path.join(category_dir, 'approval_thresholds.json')
-    if os.path.exists(thresholds_path):
-        with open(thresholds_path) as f:
-            category_meta[category]['thresholds'] = json.load(f)
+if all_embeddings:
+    _stacked = np.stack(all_embeddings)
+    faiss_index.add(_stacked)
+
+# Category metadata (rules, checklists, thresholds)
+category_meta: dict = {}
+for _cat in categories:
+    _cat_dir = os.path.join(settings.data_dir, _cat)
+    category_meta[_cat] = {}
+    for _key, _fname in [
+        ("rules", "gfr_rules.json"),
+        ("checklist", "completeness_checklist.json"),
+        ("thresholds", "approval_thresholds.json"),
+    ]:
+        _path = os.path.join(_cat_dir, _fname)
+        if os.path.exists(_path):
+            with open(_path) as f:
+                category_meta[_cat][_key] = json.load(f)
+
+# Also try loading from root data/ directory
+_root_data = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+for _key, _fname in [
+    ("rules", "gfr_rules.json"),
+    ("checklist", "completeness_checklist.json"),
+    ("thresholds", "approval_thresholds.json"),
+]:
+    _path = os.path.join(_root_data, _fname)
+    if os.path.exists(_path):
+        # Apply as default for categories that don't have their own
+        with open(_path) as f:
+            _data = json.load(f)
+        for _cat in categories:
+            if _key not in category_meta.get(_cat, {}):
+                category_meta.setdefault(_cat, {})[_key] = _data
+
+
+# ---------------------------------------------------------------------------
+# Pydantic schemas
+# ---------------------------------------------------------------------------
 
 class NotesheetRequest(BaseModel):
     request_text: str
     category: str
 
-def extract_request_details(request_text: str, category: str):
-    details = {}
-    if category == 'lab_equipment_purchase':
-        # Existing extraction logic for lab equipment
-        keywords = ['sanction', 'purchase', 'for', 'in']
-        parts = request_text.split()
-        for i, part in enumerate(parts):
-            if part in ['₹', 'rs', 'rupees'] and i+1 < len(parts):
-                amount_str = ''.join(filter(str.isdigit, parts[i+1]))
-                details['amount'] = int(amount_str) if amount_str else None
-            if part.lower() == 'for' and i+1 < len(parts):
-                details['item'] = parts[i+1]
-            if part.lower() == 'in' and i+1 < len(parts):
-                details['department'] = parts[i+1]
-    elif category == 'event_expenditure':
-        # New logic for events
-        pass  # Implement event-specific extraction
-    # Add logic for other categories
+
+class LLMSettingsRequest(BaseModel):
+    provider: str  # "ollama" | "gemini"
+    gemini_api_key: Optional[str] = None
+    gemini_model: Optional[str] = None
+    ollama_base_url: Optional[str] = None
+    ollama_model: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def extract_request_details(request_text: str, category: str) -> dict:
+    """Rudimentary keyword extraction from the request text."""
+    details: dict = {}
+    parts = request_text.split()
+    for i, part in enumerate(parts):
+        if part.lower() in ["₹", "rs", "rupees"] and i + 1 < len(parts):
+            amount_str = "".join(filter(str.isdigit, parts[i + 1]))
+            details["amount"] = int(amount_str) if amount_str else None
+        if part.lower() == "for" and i + 1 < len(parts):
+            details["item"] = parts[i + 1]
+        if part.lower() == "in" and i + 1 < len(parts):
+            details["department"] = parts[i + 1]
     return details
 
-def get_approval_chain(amount: float, category: str):
-    if category not in category_meta or 'thresholds' not in category_meta[category]:
+
+def get_approval_chain(amount: float, category: str) -> list:
+    if category not in category_meta or "thresholds" not in category_meta[category]:
         return []
-    thresholds = category_meta[category]['thresholds'].get('thresholds', [])
+    thresholds = category_meta[category]["thresholds"].get("thresholds", [])
     for tier in thresholds:
-        if 'max_amount' in tier and amount <= tier['max_amount']:
-            return tier.get('approval_chain', [])
+        if "max_amount" in tier and amount <= tier["max_amount"]:
+            return tier.get("approval_chain", [])
     return []
 
-def draft_notesheet(request_details, top_precedents, category):
+
+def draft_notesheet(request_details: dict, top_precedents: list, category: str) -> dict:
+    """Generate a draft using the active LLM provider, with template fallback."""
     try:
         prompt = f"Draft official note sheet for {category} request: {request_details}.\n"
         prompt += f"Cite at least 2 most relevant precedents from: {top_precedents}.\n"
         prompt += f"Cite applicable rules from: {category_meta[category].get('rules', [])}.\n"
-        if 'amount' in request_details and category in ['event_expenditure', 'guest_faculty_honorarium', 'student_travel', 'club_budget']:
-            prompt += f"Include a budget table with line items, GST, and total."
-        response = ollama.chat(
-            model=CONFIG['OLLAMA_MODEL'],
-            messages=[{'role': 'user', 'content': prompt}]
-        )
-        draft_text = response['message']['content']
-        return {'draft_text': draft_text, 'draft_source': 'ollama'}
-    except Exception as e:
-        template = generate_template(request_details, category)
-        return {'draft_text': template, 'draft_source': 'template', 'error': str(e)}
+        if "amount" in request_details:
+            prompt += "Include a budget table with line items, GST, and total."
 
-# Helper function for template
-def generate_template(request_details, category):
+        provider = get_llm_provider()
+        draft_text = provider.generate(prompt)
+        return {
+            "draft_text": draft_text,
+            "draft_source": provider.provider_name(),
+        }
+    except Exception as e:
+        log.exception("LLM call failed, falling back to template")
+        template = _generate_template(request_details, category)
+        return {"draft_text": template, "draft_source": "template", "error": str(e)}
+
+
+def _generate_template(request_details: dict, category: str) -> str:
     template = f"TO: [Approver]\nFROM: [Requester]\nSUBJECT: Sanction for {category.replace('_', ' ').title()}\n\n"
     template += f"Amount: ₹{request_details.get('amount', 'N/A')}\n"
     template += f"Details: {request_details}\n\n"
@@ -138,20 +184,40 @@ def generate_template(request_details, category):
     template += "SUPPORTING DOCS: [List required documents]"
     return template
 
-@app.post('/api/notesheets/generate')
+
+# ---------------------------------------------------------------------------
+# Routes: Health
+# ---------------------------------------------------------------------------
+
+@app.get("/health")
+def health_check():
+    provider = get_llm_provider()
+    return {
+        "status": "ok",
+        "llm_provider": provider.provider_name(),
+        "llm_model": provider.model_name(),
+        "faiss_vectors": faiss_index.ntotal,
+        "categories": len(categories),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Routes: Notesheet CRUD
+# ---------------------------------------------------------------------------
+
+@app.post("/api/notesheets/generate")
 async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(get_db)):
     try:
         if request.category not in categories:
-            raise HTTPException(400, 'Invalid category')
+            raise HTTPException(400, "Invalid category")
 
         request_details = extract_request_details(request.request_text, request.category)
 
-        # Precedent retrieval
-        query_embedding = model.encode(f"{request.category}: {request.request_text}")
+        # Precedent retrieval via FAISS
+        query_embedding = embedding_model.encode(f"{request.category}: {request.request_text}")
         try:
-            distances, indices = index.search(np.array([query_embedding]), 3)
-        except Exception as e:
-            # Handle empty index or FAISS errors
+            distances, indices = faiss_index.search(np.array([query_embedding]), 3)
+        except Exception:
             top_precedents = []
         else:
             top_precedents = [note_texts[i] for i in indices[0] if i < len(note_texts)]
@@ -159,45 +225,268 @@ async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(ge
         draft_result = draft_notesheet(request_details, top_precedents, request.category)
 
         # Completeness check
-        checklist = category_meta.get(request.category, {}).get('checklist', [])
-        documents_missing = [item for item in checklist if item not in request_details.get('documents', [])]
+        checklist = category_meta.get(request.category, {}).get("checklist", [])
+        documents_missing = [item for item in checklist if item not in request_details.get("documents", [])]
 
         # Approval chain
-        amount = request_details.get('amount', 0)
+        amount = request_details.get("amount", 0)
         approval_chain = get_approval_chain(amount, request.category)
 
-        # Return response with draft source
-        # Convert precedents to serializable format
+        # Serialise precedents
         precedents_serializable = []
         for p in top_precedents:
             if isinstance(p, tuple) and len(p) >= 2:
                 cat, note_dict = p[0], p[1]
+                content = note_dict.get("content", "")
                 precedents_serializable.append({
-                    'category': cat,
-                    'id': note_dict.get('id', 'unknown'),
-                    'excerpt': note_dict.get('content', '')[:200] + '...' if len(note_dict.get('content', '')) > 200 else note_dict.get('content', '')
+                    "category": cat,
+                    "id": note_dict.get("id", "unknown"),
+                    "excerpt": (content[:200] + "...") if len(content) > 200 else content,
                 })
-        
+
+        ns_id = f"NS-{int(time.time())}"
+
+        # Persist to DB
+        db_ns = Notesheet(
+            id=ns_id,
+            category=request.category,
+            request_text=request.request_text,
+            draft_text=draft_result["draft_text"],
+            draft_source=draft_result["draft_source"],
+            status="draft",
+            amount=amount if amount else None,
+            precedents_json=json.dumps(precedents_serializable),
+            rules_json=json.dumps(draft_result.get("rules_cited", [])),
+            approval_chain_json=json.dumps(approval_chain),
+            documents_missing_json=json.dumps(documents_missing),
+            error=draft_result.get("error"),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        db.add(db_ns)
+        db.commit()
+
         return {
-            'id': f"NS-{int(time.time())}",
-            'request_text': request.request_text,
-            'category': request.category,
-            'draft_text': draft_result['draft_text'],
-            'draft_source': draft_result['draft_source'],
-            'precedents_used': precedents_serializable,
-            'rules_cited': draft_result.get('rules_cited', []),
-            'documents_missing': documents_missing,
-            'approval_chain': approval_chain,
-            'status': 'draft',
-            'error': draft_result.get('error')
+            "id": ns_id,
+            "request_text": request.request_text,
+            "category": request.category,
+            "draft_text": draft_result["draft_text"],
+            "draft_source": draft_result["draft_source"],
+            "precedents_used": precedents_serializable,
+            "rules_cited": draft_result.get("rules_cited", []),
+            "documents_missing": documents_missing,
+            "approval_chain": approval_chain,
+            "status": "draft",
+            "error": draft_result.get("error"),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.exception("Error in generate_notesheet")
+        traceback.print_exc()
+        raise HTTPException(500, f"Internal error: {str(e)}")
+
+
+@app.get("/api/notesheets")
+def list_notesheets(db: Session = Depends(get_db)):
+    """Return all generated notesheets, newest first."""
+    rows = db.query(Notesheet).order_by(Notesheet.created_at.desc()).all()
+    return [
+        {
+            "id": ns.id,
+            "category": ns.category,
+            "request_text": ns.request_text,
+            "draft_text": ns.draft_text,
+            "draft_source": ns.draft_source,
+            "status": ns.status,
+            "amount": ns.amount,
+            "precedents_used": json.loads(ns.precedents_json) if ns.precedents_json else [],
+            "rules_cited": json.loads(ns.rules_json) if ns.rules_json else [],
+            "approval_chain": json.loads(ns.approval_chain_json) if ns.approval_chain_json else [],
+            "documents_missing": json.loads(ns.documents_missing_json) if ns.documents_missing_json else [],
+            "error": ns.error,
+            "created_at": ns.created_at.isoformat() if ns.created_at else None,
+            "updated_at": ns.updated_at.isoformat() if ns.updated_at else None,
+        }
+        for ns in rows
+    ]
+
+
+@app.get("/api/notesheets/{ns_id}")
+def get_notesheet(ns_id: str, db: Session = Depends(get_db)):
+    """Return a single notesheet by ID."""
+    ns = db.query(Notesheet).filter(Notesheet.id == ns_id).first()
+    if not ns:
+        raise HTTPException(404, "Notesheet not found")
+    return {
+        "id": ns.id,
+        "category": ns.category,
+        "request_text": ns.request_text,
+        "draft_text": ns.draft_text,
+        "draft_source": ns.draft_source,
+        "status": ns.status,
+        "amount": ns.amount,
+        "precedents_used": json.loads(ns.precedents_json) if ns.precedents_json else [],
+        "rules_cited": json.loads(ns.rules_json) if ns.rules_json else [],
+        "approval_chain": json.loads(ns.approval_chain_json) if ns.approval_chain_json else [],
+        "documents_missing": json.loads(ns.documents_missing_json) if ns.documents_missing_json else [],
+        "error": ns.error,
+        "created_at": ns.created_at.isoformat() if ns.created_at else None,
+        "updated_at": ns.updated_at.isoformat() if ns.updated_at else None,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Routes: Precedents
+# ---------------------------------------------------------------------------
+
+@app.get("/api/precedents")
+def list_precedents():
+    """Return all precedents currently indexed in FAISS."""
+    results = []
+    for cat, note in note_texts:
+        content = note.get("content", "")
+        results.append({
+            "id": note.get("id", "unknown"),
+            "category": cat,
+            "title": note.get("subject", note.get("id", "Untitled")),
+            "excerpt": (content[:300] + "...") if len(content) > 300 else content,
+            "full_text": content,
+        })
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Routes: Analytics
+# ---------------------------------------------------------------------------
+
+@app.get("/api/analytics")
+def get_analytics(db: Session = Depends(get_db)):
+    """Real analytics computed from the notesheets table."""
+    all_ns = db.query(Notesheet).all()
+    total = len(all_ns)
+
+    # Breakdown by category
+    by_category: dict = {}
+    by_status: dict = {}
+    for ns in all_ns:
+        by_category[ns.category] = by_category.get(ns.category, 0) + 1
+        by_status[ns.status] = by_status.get(ns.status, 0) + 1
+
+    return {
+        "totalRequests": total,
+        "requestsByCategory": [{"category": k, "count": v} for k, v in by_category.items()],
+        "approvalOutcome": [{"name": k, "value": v} for k, v in by_status.items()],
+        "turnaroundByCategory": [],
+        "mostCitedRules": [],
+        "mostCitedPrecedents": [],
+        "avgTurnaroundDays": 0,
+        "approvalRate": (by_status.get("approved", 0) / total * 100) if total else 0,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Routes: Knowledge Base
+# ---------------------------------------------------------------------------
+
+@app.get("/api/knowledge-base")
+def get_knowledge_base():
+    """FAISS index stats + list of indexed documents."""
+    documents = []
+    for cat in categories:
+        cat_dir = os.path.join(settings.data_dir, cat)
+        for key, fname in [
+            ("Precedent Note Sheet", "notesheets.json"),
+            ("GFR Rule", "gfr_rules.json"),
+            ("Completeness Checklist", "completeness_checklist.json"),
+            ("Approval Thresholds", "approval_thresholds.json"),
+        ]:
+            path = os.path.join(cat_dir, fname)
+            if os.path.exists(path):
+                stat = os.stat(path)
+                documents.append({
+                    "id": f"{cat}/{fname}",
+                    "title": f"{cat.replace('_', ' ').title()} — {fname}",
+                    "type": key,
+                    "indexedAt": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                    "sizeKb": round(stat.st_size / 1024, 1),
+                    "tags": [cat],
+                    "citedCount": 0,
+                })
+
+    return {
+        "totalDocuments": len(documents),
+        "totalVectors": faiss_index.ntotal,
+        "embeddingModel": settings.embedding_model,
+        "documents": documents,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Routes: Categories
+# ---------------------------------------------------------------------------
+
+@app.get("/api/categories")
+def list_categories():
+    """Return all available categories with their metadata."""
+    return [
+        {
+            "id": cat,
+            "label": cat.replace("_", " ").title(),
+            "rules": category_meta.get(cat, {}).get("rules", []),
+            "checklist": category_meta.get(cat, {}).get("checklist", []),
+            "thresholds": category_meta.get(cat, {}).get("thresholds", {}),
+        }
+        for cat in categories
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Routes: Professors (list)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/profs")
+def list_profs(db: Session = Depends(get_db)):
+    rows = db.query(Prof).all()
+    return [
+        {"id": p.id, "name": p.name, "email": p.email, "position": p.position}
+        for p in rows
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Routes: LLM Settings
+# ---------------------------------------------------------------------------
+
+@app.get("/api/settings/llm")
+def get_llm_settings():
+    """Return current LLM provider configuration."""
+    provider = get_llm_provider()
+    return {
+        "provider": provider.provider_name(),
+        "model": provider.model_name(),
+        "ollama_base_url": settings.ollama_base_url,
+        "ollama_model": settings.ollama_model,
+        "gemini_model": settings.gemini_model,
+        "gemini_api_key_set": bool(settings.gemini_api_key),
+    }
+
+
+@app.put("/api/settings/llm")
+def update_llm_settings(req: LLMSettingsRequest):
+    """Switch LLM provider at runtime."""
+    try:
+        provider = switch_provider(
+            req.provider,
+            gemini_api_key=req.gemini_api_key or "",
+            gemini_model=req.gemini_model or "",
+            ollama_base_url=req.ollama_base_url or "",
+            ollama_model=req.ollama_model or "",
+        )
+        return {
+            "status": "ok",
+            "provider": provider.provider_name(),
+            "model": provider.model_name(),
         }
     except Exception as e:
-        import traceback
-        print("="*80)
-        print("EXCEPTION IN generate_notesheet:")
-        print(f"Type: {type(e).__name__}")
-        print(f"Message: {str(e)}")
-        print("="*80)
-        traceback.print_exc()
-        print("="*80)
-        raise HTTPException(500, f"Internal error: {str(e)}")
+        raise HTTPException(400, str(e))

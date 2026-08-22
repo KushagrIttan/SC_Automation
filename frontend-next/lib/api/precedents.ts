@@ -1,22 +1,30 @@
-import { precedentLibrary, getPrecedent } from "@/lib/mock/precedents"
+import { fetchApi } from "@/lib/api-client"
 import type { Precedent } from "@/lib/types"
 
-function delay(ms = 350) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 export async function fetchPrecedents(): Promise<Precedent[]> {
-  await delay()
-  return JSON.parse(JSON.stringify(precedentLibrary))
-}
+  try {
+    const data = await fetchApi<any[]>("/api/precedents")
+    return data.map((item) => {
+        let frontendCategory = "Lab Equipment Purchase";
+        if (item.category === "event_expenditure") frontendCategory = "Event/Fest Expenditure";
+        if (item.category === "student_travel") frontendCategory = "Student Travel/TA-DA";
+        if (item.category === "club_budget") frontendCategory = "Club Budget";
+        if (item.category === "guest_faculty_honorarium") frontendCategory = "Guest Faculty Honorarium";
 
-export async function fetchPrecedent(id: string): Promise<Precedent | null> {
-  await delay(200)
-  const found = getPrecedent(id)
-  return found ? JSON.parse(JSON.stringify(found)) : null
-}
-
-export async function fetchPrecedentsByIds(ids: string[]): Promise<Precedent[]> {
-  await delay(200)
-  return precedentLibrary.filter((p) => ids.includes(p.id)).map((p) => JSON.parse(JSON.stringify(p)))
+        return {
+            id: item.id,
+            title: item.title,
+            category: frontendCategory as any,
+            date: new Date().toISOString(), // Mocked as backend doesn't return date currently
+            amount: 0, // Mocked
+            snippet: item.excerpt,
+            fullText: item.full_text,
+            citedCount: 0, // Mocked
+            department: "Unknown" // Mocked
+        }
+    })
+  } catch (error) {
+    console.error("Failed to fetch precedents:", error)
+    return []
+  }
 }

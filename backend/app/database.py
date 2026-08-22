@@ -1,8 +1,12 @@
-from sqlalchemy import create_engine, Column, Integer, String, Enum, ForeignKey, Text, TIMESTAMP
+from sqlalchemy import create_engine, Column, Integer, String, Enum, ForeignKey, Text, TIMESTAMP, Float, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+from datetime import datetime
+import os
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./notesheet.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///" + os.path.join(
+    os.path.dirname(__file__), "..", "notesheet.db"
+)
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
@@ -11,6 +15,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+
 class Prof(Base):
     __tablename__ = 'profs'
     id = Column(Integer, primary_key=True)
@@ -18,11 +23,13 @@ class Prof(Base):
     email = Column(String(100), nullable=False)
     position = Column(String(100))
 
+
 class ApprovalStage(Base):
     __tablename__ = 'approval_stages'
     id = Column(Integer, primary_key=True)
     notesheet_id = Column(Integer, nullable=False)
     stage_order = Column(Integer, nullable=False)
+
 
 class StageApprover(Base):
     __tablename__ = 'stage_approvers'
@@ -31,8 +38,32 @@ class StageApprover(Base):
     status = Column(Enum('pending', 'approved', 'rejected', name='status_enum'), default='pending')
     approved_at = Column(TIMESTAMP, nullable=True)
     rejection_reason = Column(Text, nullable=True)
-    
+
     prof = relationship("Prof")
+
+
+class Notesheet(Base):
+    """Stores every generated notesheet so the list/detail pages show real data."""
+    __tablename__ = 'notesheets'
+    id = Column(String(50), primary_key=True)
+    category = Column(String(50), nullable=False)
+    request_text = Column(Text, nullable=False)
+    draft_text = Column(Text, nullable=False)
+    draft_source = Column(String(20), nullable=False, default='ollama')
+    status = Column(String(30), nullable=False, default='draft')
+    amount = Column(Float, nullable=True)
+    precedents_json = Column(Text, nullable=True)   # JSON string
+    rules_json = Column(Text, nullable=True)         # JSON string
+    approval_chain_json = Column(Text, nullable=True) # JSON string
+    documents_missing_json = Column(Text, nullable=True)
+    error = Column(Text, nullable=True)
+    created_at = Column(TIMESTAMP, nullable=False, default=datetime.utcnow)
+    updated_at = Column(TIMESTAMP, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# Create tables on import
+Base.metadata.create_all(bind=engine)
+
 
 def get_db():
     db = SessionLocal()

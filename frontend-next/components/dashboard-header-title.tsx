@@ -16,10 +16,10 @@ export function DashboardHeaderTitle() {
   const entry = titleMap.find((t) => t.match(pathname))
 
   return (
-    <div className="flex items-baseline gap-2 overflow-hidden">
-      <span className="truncate text-sm font-medium text-foreground">{entry?.title ?? "Sanction Desk"}</span>
+    <div className="flex min-w-0 flex-col items-center overflow-hidden text-center leading-none">
+      <span className="truncate text-base font-semibold text-sidebar-foreground md:text-lg">{entry?.title ?? "Sanction Desk"}</span>
       {entry?.eyebrow ? (
-        <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:inline">
+        <span className="mt-1 hidden font-mono text-[9px] uppercase tracking-[0.14em] text-sidebar-foreground/65 md:inline">
           {entry.eyebrow}
         </span>
       ) : null}
