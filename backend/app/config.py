@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     # Ollama
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "hf.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF:Q4_K_M"
+    ollama_model: str = "qwen2.5-coder:3b"
 
     # Gemini
     gemini_api_key: str = ""
