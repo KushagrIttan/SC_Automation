@@ -14,10 +14,10 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { NoteSheetDetail } from "@/components/notesheet/notesheet-detail"
 import { ApprovalStepper } from "@/components/notesheet/approval-stepper"
@@ -56,6 +56,7 @@ type Phase = "idle" | "working" | "done"
 
 export function NewRequestForm() {
   const [expanded, setExpanded] = useState(true)
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const [phase, setPhase] = useState<Phase>("idle")
   const [prompt, setPrompt] = useState("")
   const [category, setCategory] = useState<NoteSheetCategory>("Lab Equipment Purchase")
@@ -72,7 +73,6 @@ export function NewRequestForm() {
   const abortRef = useRef<AbortController | null>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
 
-  // Warn early (once) if the server has no Tesseract — scanned PDFs will be rejected.
   useEffect(() => {
     let cancelled = false
     import("@/lib/api/documents").then(({ getOcrStatus }) => {
@@ -162,6 +162,7 @@ export function NewRequestForm() {
       .map((u) => `[Reference: ${u.name}]\n${u.text!.slice(0, 3000)}`)
 
     setExpanded(false)
+    setDetailsOpen(false)
     setStageEvents({})
     setFallbackSeen(false)
     setPhase("working")
@@ -225,11 +226,9 @@ export function NewRequestForm() {
   }
 
   const busy = phase === "working"
-  const totalReadyChars = uploads.reduce((sum, u) => sum + (u.chars ?? 0), 0)
 
   return (
     <div className="flex flex-col">
-      {/* Hidden PDF picker */}
       <input
         ref={fileInputRef}
         type="file"
@@ -239,184 +238,194 @@ export function NewRequestForm() {
         onChange={(e) => handleFilesChosen(e.target.files)}
       />
 
-      {/* Prompt window — hero when expanded, docked bar when collapsed */}
+      {/* Prompt window */}
       <div className="mx-auto w-full transition-all duration-500 ease-out motion-reduce:transition-none">
-        {/* Expanded editor */}
+        {/* Expanded editor — compact centered window */}
         <div
           className="grid transition-[grid-template-rows,opacity] duration-500 ease-out motion-reduce:transition-none"
           style={{ gridTemplateRows: expanded ? "1fr" : "0fr", opacity: expanded ? 1 : 0 }}
         >
           <div className="overflow-hidden">
-            <Card className="mx-auto mt-[10vh] w-full max-w-3xl border-border/80 shadow-lg shadow-black/[0.03]">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Sparkles className="size-4 text-primary" />
-                  Describe the sanction you need
-                </CardTitle>
-                <CardDescription>
-                  Write it the way you would explain it to a colleague. The draft is generated against
-                  institutional rules and past precedents, then routed to the required approvers.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="prompt">Request details</FieldLabel>
-                    <InputGroup>
-                      <InputGroupTextarea
-                        id="prompt"
-                        placeholder="e.g. Sanction ₹80,000 for four oscilloscopes in the Robotics Lab, three quotes obtained, needed before next semester's lab sessions"
-                        className="min-h-32 font-sans text-sm"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        onKeyDown={(e) => {
-                          if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleGenerate()
-                        }}
-                      />
-                    </InputGroup>
-                    <FieldDescription>
-                      Mention items, quantities, vendors, or urgency — the more detail, the sharper the citations.
-                      Attach scanned reference note sheets below; their extracted text grounds the retrieval.
-                    </FieldDescription>
-                  </Field>
+            <Card className="mx-auto mt-14 w-full max-w-2xl border-border/80 shadow-lg shadow-black/[0.03]">
+              <CardContent className="flex flex-col gap-3 px-5 py-4">
+                <Field>
+                  <FieldLabel htmlFor="prompt" className="sr-only">
+                    Request details
+                  </FieldLabel>
+                  <InputGroup>
+                    <InputGroupTextarea
+                      id="prompt"
+                      autoFocus
+                      placeholder="Describe the sanction you need… e.g. Sanction ₹80,000 for four oscilloscopes in the Robotics Lab"
+                      className="min-h-20 border-none bg-transparent px-1 font-sans text-sm shadow-none focus-visible:ring-0"
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      onKeyDown={(e) => {
+                        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleGenerate()
+                      }}
+                    />
+                  </InputGroup>
+                </Field>
 
-                  {uploads.length > 0 && (
-                    <div className="flex flex-col gap-2">
-                      {uploads.map((u) => (
-                        <div key={u.id} className="rounded-sm border border-border bg-muted/30">
-                          <div className="flex items-center gap-2 px-3 py-2">
-                            {u.status === "uploading" ? (
-                              <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none" />
-                            ) : (
-                              <FileText className="size-4 shrink-0 text-primary" />
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => u.status === "ready" && togglePanel(u.id)}
-                              disabled={u.status !== "ready"}
-                              className="min-w-0 flex-1 truncate text-left text-xs font-medium hover:underline disabled:no-underline"
-                              title={u.status === "ready" ? "Show / hide extracted text" : u.name}
-                            >
-                              {u.name}
-                              {u.status === "ready" && (
-                                <span className="ml-2 font-mono text-[10px] text-muted-foreground">
-                                  {(u.size / 1024).toFixed(0)} KB · {u.chars?.toLocaleString("en-IN")} chars
-                                </span>
-                              )}
-                              {u.status === "error" && (
-                                <span className="ml-2 font-mono text-[10px] text-destructive">{u.error}</span>
-                              )}
-                            </button>
-                            {u.status === "ready" && (
-                              <Badge
-                                variant="outline"
-                                className={
-                                  u.method === "ocr"
-                                    ? "border-amber-500/40 bg-amber-500/10 font-mono text-[9px] text-amber-700 dark:text-amber-400"
-                                    : "border-primary/30 bg-primary/[0.07] font-mono text-[9px] text-primary"
-                                }
-                              >
-                                {u.method === "ocr" ? "OCR" : "text layer"}
-                              </Badge>
-                            )}
-                            <Button
-                              size="icon-sm"
-                              variant="ghost"
-                              aria-label={`Remove ${u.name}`}
-                              onClick={() => setUploads((prev) => prev.filter((x) => x.id !== u.id))}
-                            >
-                              <X className="text-muted-foreground" />
-                            </Button>
-                          </div>
-                          {u.panelOpen && u.status === "ready" && (
-                            <div className="border-t border-border px-3 py-2">
-                              <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                                Extracted text{u.method === "ocr" ? " (via Tesseract OCR — verify accuracy)" : ""}
-                              </p>
-                              <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-sm bg-background p-2 font-mono text-[11px] leading-relaxed text-foreground/85">
-                                {u.text || "(no text extracted)"}
-                              </pre>
-                            </div>
-                          )}
+                {uploads.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {uploads.map((u) => (
+                      <div
+                        key={u.id}
+                        className="inline-flex max-w-full items-center gap-1.5 rounded-sm border border-border bg-muted/40 py-1 pl-2 pr-1"
+                      >
+                        {u.status === "uploading" ? (
+                          <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none" />
+                        ) : (
+                          <FileText className="size-3.5 shrink-0 text-primary" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => u.status === "ready" && togglePanel(u.id)}
+                          disabled={u.status !== "ready"}
+                          className="max-w-52 truncate text-left font-mono text-[11px] hover:underline disabled:no-underline"
+                          title={u.status === "ready" ? "Show / hide extracted text" : u.name}
+                        >
+                          {u.name}
+                        </button>
+                        {u.status === "ready" && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              u.method === "ocr"
+                                ? "border-amber-500/40 bg-amber-500/10 px-1 py-0 font-mono text-[9px] text-amber-700 dark:text-amber-400"
+                                : "border-primary/30 bg-primary/[0.07] px-1 py-0 font-mono text-[9px] text-primary"
+                            }
+                          >
+                            {u.method === "ocr" ? "OCR" : "text"}
+                          </Badge>
+                        )}
+                        <Button
+                          size="icon-xs"
+                          variant="ghost"
+                          aria-label={`Remove ${u.name}`}
+                          className="size-5"
+                          onClick={() => setUploads((prev) => prev.filter((x) => x.id !== u.id))}
+                        >
+                          <X className="size-3 text-muted-foreground" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Extracted-text panels */}
+                {uploads.filter((u) => u.panelOpen && u.status === "ready").length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    {uploads
+                      .filter((u) => u.panelOpen && u.status === "ready")
+                      .map((u) => (
+                        <div key={u.id} className="rounded-sm border border-border bg-muted/20 p-2">
+                          <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                            {u.name} · extracted text{u.method === "ocr" ? " (Tesseract OCR — verify accuracy)" : ""}
+                            {typeof u.chars === "number" ? ` · ${u.chars.toLocaleString("en-IN")} chars` : ""}
+                          </p>
+                          <pre className="max-h-44 overflow-auto whitespace-pre-wrap rounded-sm bg-background p-2 font-mono text-[11px] leading-relaxed text-foreground/85">
+                            {u.text || "(no text extracted)"}
+                          </pre>
                         </div>
                       ))}
-                      {totalReadyChars > 0 && (
-                        <p className="font-mono text-[10px] text-muted-foreground">
-                          {totalReadyChars.toLocaleString("en-IN")} characters of reference context will ground the
-                          retrieval and draft.
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <Field>
-                      <FieldLabel htmlFor="category">Category</FieldLabel>
-                      <Select value={category} onValueChange={(v) => setCategory(v as NoteSheetCategory)}>
-                        <SelectTrigger id="category" className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {categories.map((c) => (
-                              <SelectItem key={c} value={c}>
-                                {c}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="requester">Requester name</FieldLabel>
-                      <Input
-                        id="requester"
-                        placeholder="e.g. Dr. A. Sharma"
-                        value={requesterName}
-                        onChange={(e) => setRequesterName(e.target.value)}
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="department">Department</FieldLabel>
-                      <Input
-                        id="department"
-                        placeholder="e.g. Electronics & Communication"
-                        value={department}
-                        onChange={(e) => setDepartment(e.target.value)}
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="amount">Estimated amount (₹)</FieldLabel>
-                      <Input
-                        id="amount"
-                        type="number"
-                        inputMode="numeric"
-                        placeholder="80000"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                      />
-                    </Field>
                   </div>
+                )}
 
-                  <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                  <div className="flex items-center gap-1">
                     <Button
                       type="button"
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon-sm"
                       onClick={pickFiles}
                       aria-label="Attach PDF reference documents"
+                      title="Attach PDF reference documents"
                     >
-                      <Plus data-icon="inline-start" />
-                      Attach PDF
+                      <Plus />
                     </Button>
-                    <Button onClick={handleGenerate}>
-                      <ArrowRight data-icon="inline-start" />
-                      Generate draft
-                    </Button>
+                    <Select value={category} onValueChange={(v) => setCategory(v as NoteSheetCategory)}>
+                      <SelectTrigger
+                        aria-label="Category"
+                        className="h-8 w-auto gap-1 border-none bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:bg-muted focus-visible:ring-1"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {categories.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => setDetailsOpen((v) => !v)}
+                      className="flex items-center gap-1 rounded-sm px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      aria-expanded={detailsOpen}
+                    >
+                      Details
+                      <ChevronDown className={`size-3.5 transition-transform duration-300 motion-reduce:transition-none ${detailsOpen ? "rotate-180" : ""}`} />
+                    </button>
                   </div>
-                </FieldGroup>
+                  <Button onClick={handleGenerate} size="sm">
+                    Generate draft
+                    <ArrowRight data-icon="inline-end" />
+                  </Button>
+                </div>
+
+                {/* Optional metadata */}
+                <div
+                  className="grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none"
+                  style={{ gridTemplateRows: detailsOpen ? "1fr" : "0fr", opacity: detailsOpen ? 1 : 0 }}
+                >
+                  <div className="overflow-hidden">
+                    <div className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-3">
+                      <Field>
+                        <FieldLabel htmlFor="requester">Requester name</FieldLabel>
+                        <Input
+                          id="requester"
+                          placeholder="Dr. A. Sharma"
+                          value={requesterName}
+                          onChange={(e) => setRequesterName(e.target.value)}
+                          className="h-8 bg-background text-xs"
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor="department">Department</FieldLabel>
+                        <Input
+                          id="department"
+                          placeholder="Electronics & Communication"
+                          value={department}
+                          onChange={(e) => setDepartment(e.target.value)}
+                          className="h-8 bg-background text-xs"
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor="amount">Estimated amount (₹)</FieldLabel>
+                        <Input
+                          id="amount"
+                          type="number"
+                          inputMode="numeric"
+                          placeholder="80000"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          className="h-8 bg-background text-xs"
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
+
+            <p className="mt-2 text-center font-mono text-[10px] text-muted-foreground">
+              Drafts are grounded in retrieved precedents and institutional rules · Ctrl+Enter to generate
+            </p>
           </div>
         </div>
 
@@ -430,7 +439,7 @@ export function NewRequestForm() {
             overflow: "hidden",
           }}
         >
-          <Card className="mx-auto mt-6 w-full max-w-4xl border-border/80 py-0 shadow-sm">
+          <Card className="mx-auto mt-6 w-full max-w-2xl border-border/80 py-0 shadow-sm">
             <CardContent className="flex items-center gap-3 px-4 py-3">
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
                 <Sparkles className="size-4" />

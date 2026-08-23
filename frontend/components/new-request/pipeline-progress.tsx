@@ -106,7 +106,7 @@ export function PipelineProgress({
                       </span>
                     )}
                   </p>
-                  {event?.status !== "started" && stage.detail(event) && (
+                  {event && event.status !== "started" && stage.detail(event) && (
                     <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{stage.detail(event)}</p>
                   )}
                 </div>
