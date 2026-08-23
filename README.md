@@ -1,66 +1,72 @@
 # NotesheetAI — Policy-Driven Approval & Note-Sheet Automation
 
-NotesheetAI is an intelligent, explainable platform designed for administrative note-sheet generation, precedent matching, policy compliance verification, and multi-stage approval workflows.
+NotesheetAI drafts formal administrative note-sheets from a plain-language request, grounds
+them in retrieved precedents (FAISS + SentenceTransformers), cites applicable financial rules,
+suggests the correct approval chain by amount, checks required documents, and tracks real
+multi-stage approvals.
 
----
+## Architecture
 
-## 🌟 Key Features
+| Component | Stack | Location | Port |
+|---|---|---|---|
+| Backend | FastAPI, SQLAlchemy, FAISS, Ollama/Gemini | `backend/` | 8001 |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind | `frontend/` | 3000 |
 
-1. **Automatic Note Sheet Generation**: Generates formal, policy-compliant administrative drafts using local LLMs (Ollama) tailored to specific request categories (e.g., event expenditure, procurement, academic approvals).
-2. **Precedent Retrieval**: Vector search powered by FAISS and SentenceTransformers (`all-MiniLM-L6-v2`) to surface historical note-sheets and past decision context.
-3. **Wording & Phrasing Recommendations**: Context-aware phrasing improvements for official administrative tone.
-4. **Budget & Expenditure Estimation**: Automated line-item breakdown with GST calculations and financial threshold checks.
-5. **Rule & Statute Referencing**: Automatic citation of General Financial Rules (GFR Rule 153) and institutional ordinances.
-6. **Multi-Stage Approval Pipeline**: Interactive tracking and management of approval chains across departmental authorities.
-7. **Missing Document Checklist**: Automatic verification of required supporting attachments before submission.
-8. **Explainable AI Justifications**: Audit-ready explanation breakdown for precedent selection, rule compliance, and budget rationale.
+One frontend, one backend. The backend serves the API under `/api/*` and `/docs`.
 
----
+Key features: RAG-grounded drafting with precedent citations, rule extraction (`GFR Rule N`),
+per-category approval thresholds & checklists, submit → approve/reject workflow persisted in
+SQLite, computed analytics, LLM provider switch (Ollama local / Gemini) that persists across
+restarts, and honest `draft_source` labeling in the UI.
 
-## 🏗 System Architecture
+## Quick start
 
-- **Backend**: [FastAPI](https://fastapi.tiangolo.com/), [SQLAlchemy](https://www.sqlalchemy.org/), [SentenceTransformers](https://www.sbert.net/), [FAISS](https://github.com/facebookresearch/faiss), and [Ollama](https://ollama.com/)
-- **Frontend**: [React 18](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), and [Tailwind CSS](https://tailwindcss.com/) located in [`frontend-react/`](file:///c:/Users/Kushagr/Documents/NotesheetAI/frontend-react)
+Prerequisites: Python 3.11+, Node 18+, [Ollama](https://ollama.com) with a model such as
+`qwen2.5-coder:3b` (`ollama pull qwen2.5-coder:3b`).
 
----
-
-## 🚀 Quick Start
-
-### 1. Prerequisites
-- Python 3.10+
-- Node.js 18+ and npm
-- Ollama (running locally with `bartowski/microsoft_Phi-4-mini-instruct-GGUF` or `qwen2.5-coder:3b`)
-
-### 2. Backend Setup
 ```bash
+# Terminal 1 — backend
 cd backend
 python -m venv .venv
-# On Windows:
-.venv\Scripts\activate
-# On Linux/macOS:
-source .venv/bin/activate
+.venv\Scripts\activate          # Windows (source .venv/bin/activate on Unix)
+pip install -r ../requirements.txt
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8001
 
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### 3. Frontend Setup (React)
-```bash
-cd frontend-react
+# Terminal 2 — frontend
+cd frontend
 npm install
-npm start
+npm run dev                     # http://localhost:3000
 ```
-The React frontend will be available at `http://localhost:3000`.
 
----
+Health check: `curl http://127.0.0.1:8001/health`
+(expected: provider name/model + `faiss_vectors: 75`).
 
-## 🧪 Verification & Build Commands
+Seed approvers once (needed for approvals):
 
-- **Frontend Production Build**:
-  ```bash
-  npm --prefix frontend-react run build
-  ```
-- **Backend Health Check**:
-  ```bash
-  curl http://localhost:8000/health
-  ```
+```bash
+curl -X POST http://127.0.0.1:8001/api/profs -H "Content-Type: application/json" ^
+  -d "{\"name\":\"Dr. A. Sharma\",\"email\":\"sharma@univ.edu\",\"position\":\"Head of Department\"}"
+```
+
+Switch to Gemini at runtime via `PUT /api/settings/llm` (or the Settings page); the choice is
+persisted to `backend/.env` and survives restarts. API keys stay in `.env` (gitignored) and are
+never returned by the API.
+
+## Data & provenance
+
+- Precedent corpus: `backend/data/<category>/notesheets.json` — 75 entries, 15 per category.
+  Four categories were generated from the original `data/<cat>/*.docx` records by
+  `backend/scripts/build_precedents.py` (USD→INR ×83; each entry cites its source file).
+  Lab-equipment entries combine 3 original rich records plus authored entries in the same format.
+- Per-category rules / checklists / approval-threshold JSONs live alongside the corpus.
+- Generated note-sheets persist to `backend/notesheet.db` (SQLite; gitignored).
+
+## Verification
+
+```bash
+npm --prefix frontend run build        # production build (10 routes)
+curl http://127.0.0.1:8001/health
+```
+
+See `CONSOLIDATION_AND_FIX_SUMMARY.md` for the full fix log with evidence, known gaps, and
+start/stop instructions.

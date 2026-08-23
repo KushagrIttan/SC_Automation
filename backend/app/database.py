@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, Enum, ForeignKey, Text, TIMESTAMP, Float, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Enum, ForeignKey, TIMESTAMP, Float, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///" + os.path.join(
@@ -16,6 +16,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
 class Prof(Base):
     __tablename__ = 'profs'
     id = Column(Integer, primary_key=True)
@@ -27,8 +31,13 @@ class Prof(Base):
 class ApprovalStage(Base):
     __tablename__ = 'approval_stages'
     id = Column(Integer, primary_key=True)
-    notesheet_id = Column(Integer, nullable=False)
+    notesheet_id = Column(String(50), nullable=False)   # matches Notesheet.id (string)
     stage_order = Column(Integer, nullable=False)
+    name = Column(String(120), nullable=False, default="")
+
+    stage_approvers = relationship(
+        "StageApprover", backref="stage", cascade="all, delete-orphan"
+    )
 
 
 class StageApprover(Base):
@@ -52,13 +61,15 @@ class Notesheet(Base):
     draft_source = Column(String(20), nullable=False, default='ollama')
     status = Column(String(30), nullable=False, default='draft')
     amount = Column(Float, nullable=True)
+    requester_name = Column(String(120), nullable=True)
+    department = Column(String(120), nullable=True)
     precedents_json = Column(Text, nullable=True)   # JSON string
     rules_json = Column(Text, nullable=True)         # JSON string
     approval_chain_json = Column(Text, nullable=True) # JSON string
     documents_missing_json = Column(Text, nullable=True)
     error = Column(Text, nullable=True)
-    created_at = Column(TIMESTAMP, nullable=False, default=datetime.utcnow)
-    updated_at = Column(TIMESTAMP, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(TIMESTAMP, nullable=False, default=_utcnow)
+    updated_at = Column(TIMESTAMP, nullable=False, default=_utcnow, onupdate=_utcnow)
 
 
 # Create tables on import

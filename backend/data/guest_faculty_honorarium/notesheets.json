@@ -1,1 +1,92 @@
-[{"id":"NS-20250101-001","category":"guest_faculty_honorarium","content":"Guest faculty honorarium note sheet example"}]
+[
+  {
+    "id": "NS-GUES-001",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Finance Officer\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 166,800 for Prof. Robert Brown\n\nPayment of honorarium Rs 166,800 is proposed for Prof. Robert Brown (Arts department) for the lecture delivered on 2026-07-05.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 166,800\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_1.docx",
+    "amount": 166800
+  },
+  {
+    "id": "NS-GUES-002",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 135,800 for Dr. Emily White\n\nPayment of honorarium Rs 135,800 is proposed for Dr. Emily White (Chemistry department) for the lecture delivered on 2026-05-22.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 135,800\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_2.docx",
+    "amount": 135800
+  },
+  {
+    "id": "NS-GUES-003",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Finance Officer\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 172,700 for Dr. Sarah Blue\n\nPayment of honorarium Rs 172,700 is proposed for Dr. Sarah Blue (Physics department) for the lecture delivered on 2026-02-23.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 172,700\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_3.docx",
+    "amount": 172700
+  },
+  {
+    "id": "NS-GUES-004",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 141,000 for Prof. Robert Brown\n\nPayment of honorarium Rs 141,000 is proposed for Prof. Robert Brown (Physics department) for the lecture delivered on 2026-03-10.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 141,000\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_4.docx",
+    "amount": 141000
+  },
+  {
+    "id": "NS-GUES-005",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 128,300 for Dr. Emily White\n\nPayment of honorarium Rs 128,300 is proposed for Dr. Emily White (Engineering department) for the lecture delivered on 2026-05-23.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 128,300\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_5.docx",
+    "amount": 128300
+  },
+  {
+    "id": "NS-GUES-006",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Finance Officer\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 175,100 for Prof. John Doe\n\nPayment of honorarium Rs 175,100 is proposed for Prof. John Doe (Computer Science department) for the lecture delivered on 2026-03-07.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 175,100\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_6.docx",
+    "amount": 175100
+  },
+  {
+    "id": "NS-GUES-007",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: HoD\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 79,000 for Prof. Robert Brown\n\nPayment of honorarium Rs 79,000 is proposed for Prof. Robert Brown (Business department) for the lecture delivered on 2026-04-17.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD\n\nApproved Amount: Rs 79,000\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_7.docx",
+    "amount": 79000
+  },
+  {
+    "id": "NS-GUES-008",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 141,600 for Dr. Jane Smith\n\nPayment of honorarium Rs 141,600 is proposed for Dr. Jane Smith (Computer Science department) for the lecture delivered on 2025-12-13.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 141,600\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_8.docx",
+    "amount": 141600
+  },
+  {
+    "id": "NS-GUES-009",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 87,400 for Dr. Jane Smith\n\nPayment of honorarium Rs 87,400 is proposed for Dr. Jane Smith (Business department) for the lecture delivered on 2025-11-18.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 87,400\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_9.docx",
+    "amount": 87400
+  },
+  {
+    "id": "NS-GUES-010",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Finance Officer\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 182,400 for Dr. Alice Green\n\nPayment of honorarium Rs 182,400 is proposed for Dr. Alice Green (Physics department) for the lecture delivered on 2025-09-08.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 182,400\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_10.docx",
+    "amount": 182400
+  },
+  {
+    "id": "NS-GUES-011",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 161,900 for Prof. Robert Brown\n\nPayment of honorarium Rs 161,900 is proposed for Prof. Robert Brown (Engineering department) for the lecture delivered on 2026-05-10.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 161,900\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_11.docx",
+    "amount": 161900
+  },
+  {
+    "id": "NS-GUES-012",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 128,600 for Prof. Robert Brown\n\nPayment of honorarium Rs 128,600 is proposed for Prof. Robert Brown (Computer Science department) for the lecture delivered on 2025-11-07.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 128,600\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_12.docx",
+    "amount": 128600
+  },
+  {
+    "id": "NS-GUES-013",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 139,900 for Dr. Jane Smith\n\nPayment of honorarium Rs 139,900 is proposed for Dr. Jane Smith (Engineering department) for the lecture delivered on 2026-06-02.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 139,900\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_13.docx",
+    "amount": 139900
+  },
+  {
+    "id": "NS-GUES-014",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Finance Officer\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 203,800 for Dr. Sarah Blue\n\nPayment of honorarium Rs 203,800 is proposed for Dr. Sarah Blue (Chemistry department) for the lecture delivered on 2026-02-19.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 203,800\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_14.docx",
+    "amount": 203800
+  },
+  {
+    "id": "NS-GUES-015",
+    "category": "guest_faculty_honorarium",
+    "content": "TO: Dean\nFROM: Head of Department\nSUBJECT: Honorarium of Rs 137,000 for Dr. Jane Smith\n\nPayment of honorarium Rs 137,000 is proposed for Dr. Jane Smith (Business department) for the lecture delivered on 2026-05-01.\nJustification: The session supplemented the regular curriculum with expert instruction and complies with applicable honorarium rates.\nPrecedent: Recorded as an approved honorarium payment.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 137,000\nStatus: Approved | Source record: data/guest_faculty_honorarium/note_sheet_15.docx",
+    "amount": 137000
+  }
+]

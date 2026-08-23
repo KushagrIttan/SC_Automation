@@ -1,1 +1,92 @@
-[{"id":"NS-20250101-001","category":"student_travel","content":"Student travel note sheet example"}]
+[
+  {
+    "id": "NS-STUD-001",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 129,500 for Alice Johnson — Startup Weekend\n\nReimbursement of Rs 129,500 is requested for Alice Johnson to attend Startup Weekend at San Francisco.\nBreakdown: Travel 94,400; Accommodation 35,100.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 129,500\nStatus: Approved | Source record: data/student_travel/note_sheet_1.docx",
+    "amount": 129500
+  },
+  {
+    "id": "NS-STUD-002",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 147,600 for Fiona Clark — Startup Weekend\n\nReimbursement of Rs 147,600 is requested for Fiona Clark to attend Startup Weekend at Miami.\nBreakdown: Travel 85,600; Accommodation 62,000.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 147,600\nStatus: Approved | Source record: data/student_travel/note_sheet_2.docx",
+    "amount": 147600
+  },
+  {
+    "id": "NS-STUD-003",
+    "category": "student_travel",
+    "content": "TO: HoD\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 81,700 for Ethan Moore — AI Conference 2024\n\nReimbursement of Rs 81,700 is requested for Ethan Moore to attend AI Conference 2024 at New York.\nBreakdown: Travel 43,900; Accommodation 37,800.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD\n\nApproved Amount: Rs 81,700\nStatus: Approved | Source record: data/student_travel/note_sheet_3.docx",
+    "amount": 81700
+  },
+  {
+    "id": "NS-STUD-004",
+    "category": "student_travel",
+    "content": "TO: HoD\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 100,700 for Hannah Lee — Data Science Expo\n\nReimbursement of Rs 100,700 is requested for Hannah Lee to attend Data Science Expo at Austin.\nBreakdown: Travel 63,200; Accommodation 37,500.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD\n\nApproved Amount: Rs 100,700\nStatus: Approved | Source record: data/student_travel/note_sheet_4.docx",
+    "amount": 100700
+  },
+  {
+    "id": "NS-STUD-005",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 159,200 for George Lewis — Machine Learning Symposium\n\nReimbursement of Rs 159,200 is requested for George Lewis to attend Machine Learning Symposium at Seattle.\nBreakdown: Travel 113,000; Accommodation 46,200.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 159,200\nStatus: Approved | Source record: data/student_travel/note_sheet_5.docx",
+    "amount": 159200
+  },
+  {
+    "id": "NS-STUD-006",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 154,700 for Charlie Davis — Startup Weekend\n\nReimbursement of Rs 154,700 is requested for Charlie Davis to attend Startup Weekend at Chicago.\nBreakdown: Travel 71,500; Accommodation 83,200.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 154,700\nStatus: Approved | Source record: data/student_travel/note_sheet_6.docx",
+    "amount": 154700
+  },
+  {
+    "id": "NS-STUD-007",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 178,600 for Ethan Moore — Tech Summit 2023\n\nReimbursement of Rs 178,600 is requested for Ethan Moore to attend Tech Summit 2023 at Austin.\nBreakdown: Travel 96,900; Accommodation 81,800.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 178,600\nStatus: Approved | Source record: data/student_travel/note_sheet_7.docx",
+    "amount": 178600
+  },
+  {
+    "id": "NS-STUD-008",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 139,200 for Alice Johnson — Tech Summit 2023\n\nReimbursement of Rs 139,200 is requested for Alice Johnson to attend Tech Summit 2023 at Austin.\nBreakdown: Travel 77,500; Accommodation 61,700.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 139,200\nStatus: Approved | Source record: data/student_travel/note_sheet_8.docx",
+    "amount": 139200
+  },
+  {
+    "id": "NS-STUD-009",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 127,700 for Diana Miller — AI Conference 2024\n\nReimbursement of Rs 127,700 is requested for Diana Miller to attend AI Conference 2024 at Chicago.\nBreakdown: Travel 59,400; Accommodation 68,300.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 127,700\nStatus: Approved | Source record: data/student_travel/note_sheet_9.docx",
+    "amount": 127700
+  },
+  {
+    "id": "NS-STUD-010",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 205,300 for Diana Miller — Data Science Expo\n\nReimbursement of Rs 205,300 is requested for Diana Miller to attend Data Science Expo at Miami.\nBreakdown: Travel 109,400; Accommodation 95,900.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 205,300\nStatus: Approved | Source record: data/student_travel/note_sheet_10.docx",
+    "amount": 205300
+  },
+  {
+    "id": "NS-STUD-011",
+    "category": "student_travel",
+    "content": "TO: HoD\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 102,000 for Bob Wilson — Research Conference\n\nReimbursement of Rs 102,000 is requested for Bob Wilson to attend Research Conference at Miami.\nBreakdown: Travel 55,000; Accommodation 47,000.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD\n\nApproved Amount: Rs 102,000\nStatus: Approved | Source record: data/student_travel/note_sheet_11.docx",
+    "amount": 102000
+  },
+  {
+    "id": "NS-STUD-012",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 133,200 for Hannah Lee — Machine Learning Symposium\n\nReimbursement of Rs 133,200 is requested for Hannah Lee to attend Machine Learning Symposium at San Francisco.\nBreakdown: Travel 99,100; Accommodation 34,100.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 133,200\nStatus: Approved | Source record: data/student_travel/note_sheet_12.docx",
+    "amount": 133200
+  },
+  {
+    "id": "NS-STUD-013",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 143,300 for Bob Wilson — Data Science Expo\n\nReimbursement of Rs 143,300 is requested for Bob Wilson to attend Data Science Expo at San Francisco.\nBreakdown: Travel 102,500; Accommodation 40,800.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 143,300\nStatus: Approved | Source record: data/student_travel/note_sheet_13.docx",
+    "amount": 143300
+  },
+  {
+    "id": "NS-STUD-014",
+    "category": "student_travel",
+    "content": "TO: HoD\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 108,000 for Ethan Moore — AI Conference 2024\n\nReimbursement of Rs 108,000 is requested for Ethan Moore to attend AI Conference 2024 at Seattle.\nBreakdown: Travel 48,900; Accommodation 59,100.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD\n\nApproved Amount: Rs 108,000\nStatus: Approved | Source record: data/student_travel/note_sheet_14.docx",
+    "amount": 108000
+  },
+  {
+    "id": "NS-STUD-015",
+    "category": "student_travel",
+    "content": "TO: Dean\nFROM: Faculty Advisor\nSUBJECT: TA-DA sanction of Rs 171,500 for Alice Johnson — Machine Learning Symposium\n\nReimbursement of Rs 171,500 is requested for Alice Johnson to attend Machine Learning Symposium at San Francisco.\nBreakdown: Travel 75,900; Accommodation 95,600.\nJustification: Paper acceptance reflects institutional research quality; TA-DA norms apply.\nPrecedent: Recorded as an approved travel claim.\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 171,500\nStatus: Approved | Source record: data/student_travel/note_sheet_15.docx",
+    "amount": 171500
+  }
+]

@@ -38,3 +38,31 @@ class Settings(BaseSettings):
 
 # Singleton – importable anywhere as `from app.config import settings`
 settings = Settings()
+
+
+def persist_settings() -> None:
+    """Write the current provider configuration to backend/.env so it
+    survives restarts. Values are read back by pydantic-settings on boot."""
+    path = os.path.join(os.path.dirname(__file__), "..", ".env")
+    lines: dict[str, str] = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as fh:
+            for raw in fh:
+                key, _, value = raw.strip().partition("=")
+                if key:
+                    lines[key] = value
+
+    def upsert(key: str, value: str) -> None:
+        if value:
+            lines[key] = value
+
+    lines["LLM_PROVIDER"] = settings.llm_provider
+    upsert("OLLAMA_BASE_URL", settings.ollama_base_url)
+    upsert("OLLAMA_MODEL", settings.ollama_model)
+    upsert("GEMINI_MODEL", settings.gemini_model)
+    if settings.gemini_api_key:
+        upsert("GEMINI_API_KEY", settings.gemini_api_key)
+
+    with open(path, "w", encoding="utf-8") as fh:
+        for key, value in lines.items():
+            fh.write(f"{key}={value}\n")

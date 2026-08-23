@@ -13,5 +13,77 @@
     "id": "NS-20240815-003",
     "category": "lab_equipment_purchase",
     "content": "TO: Head, Electronics Department\nFROM: Lab Coordinator\nSUBJECT: Sanction of ₹45,000 for Microcontroller Development Kits\n\nRequest for 15 Arduino Mega 2560 Development Kits with accessories at ₹45,000.\n\nJustification: Required for IoT and Embedded Systems practical courses for 60 students.\n\nPrecedent: Development kits sanctioned vide NS-20230612-008 for ₹40,000.\n\nRules Cited: GFR Rule 153, GGSIPU Lab Equipment Guidelines.\n\nApproval Chain: Lab Coordinator → HoD (for amounts below ₹50,000)\n\nSupporting Documents: Quotations (3), Comparative Statement\n\nApproved Amount: ₹45,000\nStatus: Approved on 2024-08-20"
+  },
+  {
+    "id": "NS-20240502-004",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Computer Science\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 3,20,000 for GPU Workstation Cluster\n\nRequest for procurement supported by 30 vendor quotations at an estimated cost of Rs 320,000.\nJustification: Deep-learning elective and final-year projects require CUDA-capable hardware; existing desktops are 6 years old.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3, ,,  , G, G, S, I, P, U,  , C, a, p, i, t, a, l,  , E, q, u, i, p, m, e, n, t,  , G, u, i, d, e, l, i, n, e, s\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 320,000\nStatus: Approved on 2024-05-20 | Source record: authored seed entry",
+    "amount": 320000
+  },
+  {
+    "id": "NS-20240610-005",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Dean, Engineering\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 95,000 for Universal Testing Machine accessories\n\nRequest for procurement supported by 26 vendor quotations at an estimated cost of Rs 95,000.\nJustification: Civil engineering lab requires updated grips and extensometers for concrete testing labs mandated by AICTE curriculum.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD -> Dean\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 95,000\nStatus: Approved on 2024-06-25 | Source record: authored seed entry",
+    "amount": 95000
+  },
+  {
+    "id": "NS-20240718-006",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Biotechnology\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 58,000 for PCR Thermal Cycler maintenance kit\n\nRequest for procurement supported by 24 vendor quotations at an estimated cost of Rs 58,000.\nJustification: Preventive maintenance avoids downtime during semester practicals; AMC vendor quote validated against GFR norms.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 58,000\nStatus: Approved on 2024-08-01 | Source record: authored seed entry",
+    "amount": 58000
+  },
+  {
+    "id": "NS-20240909-007",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Mechanical\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 2,10,000 for CNC Lathe retrofit\n\nRequest for procurement supported by 27 vendor quotations at an estimated cost of Rs 210,000.\nJustification: Retrofit adds digital position readout, extending machine life by 8 years at one-third of replacement cost.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3, ,,  , M, a, k, e,  , i, n,  , I, n, d, i, a,  , p, r, e, f, e, r, e, n, c, e,  , u, n, d, e, r,  , G, F, R,  , R, u, l, e,  , 1, 5, 9\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 210,000\nStatus: Approved on 2024-09-28 | Source record: authored seed entry",
+    "amount": 210000
+  },
+  {
+    "id": "NS-20241011-008",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Physics\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 42,500 for Optical Breadboards and Mounts\n\nRequest for procurement supported by 23 vendor quotations at an estimated cost of Rs 42,500.\nJustification: Optics experiments for 120 students per semester need vibration-isolated setups; current setups fail alignment weekly.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 42,500\nStatus: Approved on 2024-10-30 | Source record: authored seed entry",
+    "amount": 42500
+  },
+  {
+    "id": "NS-20241119-009",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Dean, Sciences\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 1,45,000 for Fluorescence Spectrophotometer\n\nRequest for procurement supported by 29 vendor quotations at an estimated cost of Rs 145,000.\nJustification: Research scholars require fluorescence measurements; external booking costs exceed purchase cost within two years.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 145,000\nStatus: Approved on 2024-12-05 | Source record: authored seed entry",
+    "amount": 145000
+  },
+  {
+    "id": "NS-20250107-010",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Electronics\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 36,000 for Soldering and Rework Stations\n\nRequest for procurement supported by 22 vendor quotations at an estimated cost of Rs 36,000.\nJustification: Eight fumeextractor-equipped stations replace damaged units ahead of electronics workshop courses.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 36,000\nStatus: Approved on 2025-01-21 | Source record: authored seed entry",
+    "amount": 36000
+  },
+  {
+    "id": "NS-20250214-011",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Computer Science\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 67,500 for Network Simulator Hardware Nodes\n\nRequest for procurement supported by 25 vendor quotations at an estimated cost of Rs 67,500.\nJustification: Computer networks lab requires physical routers and switches beyond simulator software for hands-on labs.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 67,500\nStatus: Approved on 2025-02-28 | Source record: authored seed entry",
+    "amount": 67500
+  },
+  {
+    "id": "NS-20250318-012",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Dean, Engineering\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 1,80,000 for Environmental Chamber\n\nRequest for procurement supported by 28 vendor quotations at an estimated cost of Rs 180,000.\nJustification: Material testing under controlled humidity supports sponsored project deliverables due this fiscal year.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 180,000\nStatus: Approved on 2025-04-04 | Source record: authored seed entry",
+    "amount": 180000
+  },
+  {
+    "id": "NS-20250422-013",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Civil\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 49,000 for Total Station Survey Equipment\n\nRequest for procurement supported by 24 vendor quotations at an estimated cost of Rs 49,000.\nJustification: Survey camp and field labs need one additional total station to maintain 4-student-per-instrument ratio.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 49,000\nStatus: Approved on 2025-05-09 | Source record: authored seed entry",
+    "amount": 49000
+  },
+  {
+    "id": "NS-20250526-014",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Robotics\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 88,000 for Collaborative Robot Accessories\n\nRequest for procurement supported by 26 vendor quotations at an estimated cost of Rs 88,000.\nJustification: Grippers and vision module expand existing cobot into assembly-line simulation cell for capstone projects.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD -> Dean\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 88,000\nStatus: Approved on 2025-06-12 | Source record: authored seed entry",
+    "amount": 88000
+  },
+  {
+    "id": "NS-20250701-015",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Chemistry\nFROM: Lab In-charge\nSUBJECT: Sanction of Rs 54,000 for Analytical Balances (5 units)\n\nRequest for procurement supported by 23 vendor quotations at an estimated cost of Rs 54,000.\nJustification: Quantitative analysis courses require calibrated precision balances; existing units failed annual verification.\nPrecedent: Consistent with prior sanctioned purchases in this category.\nRules Cited: R, u, l, e, s,  , C, i, t, e, d, :,  , G, F, R,  , R, u, l, e,  , 1, 5, 3\nApproval Chain: HoD\nSupporting Documents: Quotations (minimum 3), Comparative statement, Technical specifications, Purchase committee approval\n\nApproved Amount: Rs 54,000\nStatus: Approved on 2025-07-16 | Source record: authored seed entry",
+    "amount": 54000
   }
 ]

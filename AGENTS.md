@@ -1,12 +1,12 @@
 # NotesheetAI Agent Contract
 
 ## Product context
-NotesheetAI supports policy-driven, explainable note-sheet and approval workflows. This repository contains the Python backend and a React frontend in `frontend-react/`.
+NotesheetAI supports policy-driven, explainable note-sheet and approval workflows. This repository contains the Python backend and a Next.js frontend in `frontend/`.
 
 ## Frontend delivery standard
 
 ### Before implementation
-- Read the current route, component tree, `frontend-react/package.json`, global styles, and any existing product copy/assets.
+- Read the current route, component tree, `frontend/package.json`, global styles, and any existing product copy/assets.
 - State a one-line design read: target user, task to complete, visual direction, and whether the work is a refinement or redesign.
 - Preserve route structure, form field names, and existing product claims unless a task explicitly changes them.
 

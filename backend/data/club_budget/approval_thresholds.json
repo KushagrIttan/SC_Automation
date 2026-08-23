@@ -1,0 +1,26 @@
+{
+    "thresholds":  [
+                       {
+                           "max_amount":  40000,
+                           "approval_chain":  [
+                                                  "HoD"
+                                              ]
+                       },
+                       {
+                           "max_amount":  80000,
+                           "approval_chain":  [
+                                                  "HoD",
+                                                  "Dean"
+                                              ]
+                       },
+                       {
+                           "max_amount":  1.7976931348623157E+308,
+                           "approval_chain":  [
+                                                  "HoD",
+                                                  "Dean",
+                                                  "Registrar",
+                                                  "Finance Officer"
+                                              ]
+                       }
+                   ]
+}

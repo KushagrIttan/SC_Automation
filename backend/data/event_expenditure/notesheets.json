@@ -1,1 +1,92 @@
-[{"id":"NS-20250101-001","category":"event_expenditure","content":"Event expenditure note sheet example"}]
+[
+  {
+    "id": "NS-EVEN-001",
+    "category": "event_expenditure",
+    "content": "TO: Dean\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 422,000 for Workshop Series\n\nThis is to request sanction of Rs 422,000 towards the event 'Workshop Series' held on 2026-04-06.\nBudget breakdown: Venue 219,000; Catering 151,300; Decorations 51,700.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Dean level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 422,000\nStatus: Approved | Source record: data/event_expenditure/note_sheet_1.docx",
+    "amount": 422000
+  },
+  {
+    "id": "NS-EVEN-002",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 369,400 for Alumni Meet\n\nThis is to request sanction of Rs 369,400 towards the event 'Alumni Meet' held on 2025-12-20.\nBudget breakdown: Venue 168,600; Catering 144,300; Decorations 56,400.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 369,400\nStatus: Approved | Source record: data/event_expenditure/note_sheet_2.docx",
+    "amount": 369400
+  },
+  {
+    "id": "NS-EVEN-003",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 225,900 for Guest Lecture Series\n\nThis is to request sanction of Rs 225,900 towards the event 'Guest Lecture Series' held on 2026-06-10.\nBudget breakdown: Venue 89,700; Catering 96,900; Decorations 39,300.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 225,900\nStatus: Approved | Source record: data/event_expenditure/note_sheet_3.docx",
+    "amount": 225900
+  },
+  {
+    "id": "NS-EVEN-004",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 327,800 for Orientation Program\n\nThis is to request sanction of Rs 327,800 towards the event 'Orientation Program' held on 2025-11-05.\nBudget breakdown: Venue 139,200; Catering 161,600; Decorations 27,000.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 327,800\nStatus: Approved | Source record: data/event_expenditure/note_sheet_4.docx",
+    "amount": 327800
+  },
+  {
+    "id": "NS-EVEN-005",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 396,300 for Annual Symposium\n\nThis is to request sanction of Rs 396,300 towards the event 'Annual Symposium' held on 2025-08-25.\nBudget breakdown: Venue 198,600; Catering 154,500; Decorations 43,200.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 396,300\nStatus: Approved | Source record: data/event_expenditure/note_sheet_5.docx",
+    "amount": 396300
+  },
+  {
+    "id": "NS-EVEN-006",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 259,200 for Workshop Series\n\nThis is to request sanction of Rs 259,200 towards the event 'Workshop Series' held on 2026-03-24.\nBudget breakdown: Venue 134,500; Catering 95,000; Decorations 29,700.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 259,200\nStatus: Approved | Source record: data/event_expenditure/note_sheet_6.docx",
+    "amount": 259200
+  },
+  {
+    "id": "NS-EVEN-007",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 371,300 for Orientation Program\n\nThis is to request sanction of Rs 371,300 towards the event 'Orientation Program' held on 2026-01-17.\nBudget breakdown: Venue 231,200; Catering 117,800; Decorations 22,300.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 371,300\nStatus: Approved | Source record: data/event_expenditure/note_sheet_7.docx",
+    "amount": 371300
+  },
+  {
+    "id": "NS-EVEN-008",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 334,200 for Hackathon\n\nThis is to request sanction of Rs 334,200 towards the event 'Hackathon' held on 2026-06-16.\nBudget breakdown: Venue 153,900; Catering 128,900; Decorations 51,400.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 334,200\nStatus: Approved | Source record: data/event_expenditure/note_sheet_8.docx",
+    "amount": 334200
+  },
+  {
+    "id": "NS-EVEN-009",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 269,700 for Orientation Program\n\nThis is to request sanction of Rs 269,700 towards the event 'Orientation Program' held on 2026-03-04.\nBudget breakdown: Venue 130,400; Catering 103,300; Decorations 35,900.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 269,700\nStatus: Approved | Source record: data/event_expenditure/note_sheet_9.docx",
+    "amount": 269700
+  },
+  {
+    "id": "NS-EVEN-010",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 332,200 for Hackathon\n\nThis is to request sanction of Rs 332,200 towards the event 'Hackathon' held on 2026-06-04.\nBudget breakdown: Venue 236,900; Catering 69,100; Decorations 26,100.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 332,200\nStatus: Approved | Source record: data/event_expenditure/note_sheet_10.docx",
+    "amount": 332200
+  },
+  {
+    "id": "NS-EVEN-011",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 353,200 for Spring Seminar\n\nThis is to request sanction of Rs 353,200 towards the event 'Spring Seminar' held on 2025-12-07.\nBudget breakdown: Venue 184,200; Catering 121,800; Decorations 47,300.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 353,200\nStatus: Approved | Source record: data/event_expenditure/note_sheet_11.docx",
+    "amount": 353200
+  },
+  {
+    "id": "NS-EVEN-012",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 330,600 for Guest Lecture Series\n\nThis is to request sanction of Rs 330,600 towards the event 'Guest Lecture Series' held on 2025-09-02.\nBudget breakdown: Venue 132,600; Catering 153,100; Decorations 44,900.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 330,600\nStatus: Approved | Source record: data/event_expenditure/note_sheet_12.docx",
+    "amount": 330600
+  },
+  {
+    "id": "NS-EVEN-013",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 320,700 for Alumni Meet\n\nThis is to request sanction of Rs 320,700 towards the event 'Alumni Meet' held on 2026-03-21.\nBudget breakdown: Venue 186,100; Catering 85,600; Decorations 49,100.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 320,700\nStatus: Approved | Source record: data/event_expenditure/note_sheet_13.docx",
+    "amount": 320700
+  },
+  {
+    "id": "NS-EVEN-014",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 246,600 for Tech Expo\n\nThis is to request sanction of Rs 246,600 towards the event 'Tech Expo' held on 2026-06-15.\nBudget breakdown: Venue 108,600; Catering 86,400; Decorations 51,500.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 246,600\nStatus: Approved | Source record: data/event_expenditure/note_sheet_14.docx",
+    "amount": 246600
+  },
+  {
+    "id": "NS-EVEN-015",
+    "category": "event_expenditure",
+    "content": "TO: HoD\nFROM: Department of Student Affairs\nSUBJECT: Sanction of Rs 374,300 for Guest Lecture Series\n\nThis is to request sanction of Rs 374,300 towards the event 'Guest Lecture Series' held on 2026-02-07.\nBudget breakdown: Venue 203,300; Catering 151,100; Decorations 20,000.\nJustification: The event directly supports student engagement and was reviewed against budget provisions for the academic year.\nPrecedent: Recorded as an approved expenditure at Department Head level.\nRules Cited: GFR Rule 153 (procurement of services)\nApproval Chain: HoD\n\nApproved Amount: Rs 374,300\nStatus: Approved | Source record: data/event_expenditure/note_sheet_15.docx",
+    "amount": 374300
+  }
+]

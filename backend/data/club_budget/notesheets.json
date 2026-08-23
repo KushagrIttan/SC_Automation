@@ -1,1 +1,92 @@
-[{"id":"NS-20250101-001","category":"club_budget","content":"Club budget note sheet example"}]
+[
+  {
+    "id": "NS-CLUB-001",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Music Club\nSUBJECT: Budget of Rs 108,600 for Music Club — Field Trip\n\nThe Music Club requests Rs 108,600 for 'Field Trip' dated 2025-11-13.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 108,600\nStatus: Approved | Source record: data/club_budget/note_sheet_1.docx",
+    "amount": 108600
+  },
+  {
+    "id": "NS-CLUB-002",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Dance Club\nSUBJECT: Budget of Rs 105,800 for Dance Club — Field Trip\n\nThe Dance Club requests Rs 105,800 for 'Field Trip' dated 2026-04-20.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 105,800\nStatus: Approved | Source record: data/club_budget/note_sheet_2.docx",
+    "amount": 105800
+  },
+  {
+    "id": "NS-CLUB-003",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Sports Club\nSUBJECT: Budget of Rs 107,200 for Sports Club — Competition Entry\n\nThe Sports Club requests Rs 107,200 for 'Competition Entry' dated 2026-07-04.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 107,200\nStatus: Approved | Source record: data/club_budget/note_sheet_3.docx",
+    "amount": 107200
+  },
+  {
+    "id": "NS-CLUB-004",
+    "category": "club_budget",
+    "content": "TO: Dean\nFROM: Faculty Advisor, Music Club\nSUBJECT: Budget of Rs 56,500 for Music Club — Field Trip\n\nThe Music Club requests Rs 56,500 for 'Field Trip' dated 2025-10-19.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 56,500\nStatus: Approved | Source record: data/club_budget/note_sheet_4.docx",
+    "amount": 56500
+  },
+  {
+    "id": "NS-CLUB-005",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Robotics Club\nSUBJECT: Budget of Rs 107,700 for Robotics Club — Competition Entry\n\nThe Robotics Club requests Rs 107,700 for 'Competition Entry' dated 2025-08-22.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 107,700\nStatus: Approved | Source record: data/club_budget/note_sheet_5.docx",
+    "amount": 107700
+  },
+  {
+    "id": "NS-CLUB-006",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Debate Club\nSUBJECT: Budget of Rs 120,100 for Debate Club — Guest Lectures\n\nThe Debate Club requests Rs 120,100 for 'Guest Lectures' dated 2026-02-15.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 120,100\nStatus: Approved | Source record: data/club_budget/note_sheet_6.docx",
+    "amount": 120100
+  },
+  {
+    "id": "NS-CLUB-007",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Music Club\nSUBJECT: Budget of Rs 109,500 for Music Club — Guest Lectures\n\nThe Music Club requests Rs 109,500 for 'Guest Lectures' dated 2025-09-06.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 109,500\nStatus: Approved | Source record: data/club_budget/note_sheet_7.docx",
+    "amount": 109500
+  },
+  {
+    "id": "NS-CLUB-008",
+    "category": "club_budget",
+    "content": "TO: HoD\nFROM: Faculty Advisor, Dance Club\nSUBJECT: Budget of Rs 38,900 for Dance Club — Seminar Costs\n\nThe Dance Club requests Rs 38,900 for 'Seminar Costs' dated 2026-06-03.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD\n\nApproved Amount: Rs 38,900\nStatus: Approved | Source record: data/club_budget/note_sheet_8.docx",
+    "amount": 38900
+  },
+  {
+    "id": "NS-CLUB-009",
+    "category": "club_budget",
+    "content": "TO: Dean\nFROM: Faculty Advisor, Debate Club\nSUBJECT: Budget of Rs 62,600 for Debate Club — Equipment Purchase\n\nThe Debate Club requests Rs 62,600 for 'Equipment Purchase' dated 2026-06-17.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 62,600\nStatus: Approved | Source record: data/club_budget/note_sheet_9.docx",
+    "amount": 62600
+  },
+  {
+    "id": "NS-CLUB-010",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Literary Club\nSUBJECT: Budget of Rs 112,400 for Literary Club — Workshop Materials\n\nThe Literary Club requests Rs 112,400 for 'Workshop Materials' dated 2025-10-14.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 112,400\nStatus: Approved | Source record: data/club_budget/note_sheet_10.docx",
+    "amount": 112400
+  },
+  {
+    "id": "NS-CLUB-011",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Dance Club\nSUBJECT: Budget of Rs 98,400 for Dance Club — Event Organization\n\nThe Dance Club requests Rs 98,400 for 'Event Organization' dated 2026-02-03.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 98,400\nStatus: Approved | Source record: data/club_budget/note_sheet_11.docx",
+    "amount": 98400
+  },
+  {
+    "id": "NS-CLUB-012",
+    "category": "club_budget",
+    "content": "TO: Dean\nFROM: Faculty Advisor, Literary Club\nSUBJECT: Budget of Rs 80,600 for Literary Club — Workshop Materials\n\nThe Literary Club requests Rs 80,600 for 'Workshop Materials' dated 2026-06-22.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 80,600\nStatus: Approved | Source record: data/club_budget/note_sheet_12.docx",
+    "amount": 80600
+  },
+  {
+    "id": "NS-CLUB-013",
+    "category": "club_budget",
+    "content": "TO: Finance Officer\nFROM: Faculty Advisor, Sports Club\nSUBJECT: Budget of Rs 108,400 for Sports Club — Field Trip\n\nThe Sports Club requests Rs 108,400 for 'Field Trip' dated 2025-11-22.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean -> Registrar -> Finance Officer\n\nApproved Amount: Rs 108,400\nStatus: Approved | Source record: data/club_budget/note_sheet_13.docx",
+    "amount": 108400
+  },
+  {
+    "id": "NS-CLUB-014",
+    "category": "club_budget",
+    "content": "TO: Dean\nFROM: Faculty Advisor, Sports Club\nSUBJECT: Budget of Rs 41,800 for Sports Club — Seminar Costs\n\nThe Sports Club requests Rs 41,800 for 'Seminar Costs' dated 2025-12-02.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD -> Dean\n\nApproved Amount: Rs 41,800\nStatus: Approved | Source record: data/club_budget/note_sheet_14.docx",
+    "amount": 41800
+  },
+  {
+    "id": "NS-CLUB-015",
+    "category": "club_budget",
+    "content": "TO: HoD\nFROM: Faculty Advisor, Literary Club\nSUBJECT: Budget of Rs 15,100 for Literary Club — Guest Lectures\n\nThe Literary Club requests Rs 15,100 for 'Guest Lectures' dated 2026-03-18.\nJustification: Sustains co-curricular activity planned for the session and stays within the allocated club grant.\nRules Cited: GFR Rule 153 (procurement for club activities)\nApproval Chain: HoD\n\nApproved Amount: Rs 15,100\nStatus: Approved | Source record: data/club_budget/note_sheet_15.docx",
+    "amount": 15100
+  }
+]

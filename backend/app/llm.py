@@ -123,6 +123,13 @@ def switch_provider(
 
     _current_provider = _build_provider(provider, settings)
     log.info("Switched LLM provider to %s (%s)", provider, _current_provider.model_name())
+
+    try:
+        from app.config import persist_settings
+        persist_settings()
+    except Exception:
+        log.exception("Could not persist LLM provider settings to .env")
+
     return _current_provider
 
 

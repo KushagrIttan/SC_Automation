@@ -1,5 +1,0 @@
-Approval Thresholds for Student Travel
-
-- $0-$1500: Department Head
-- $1501-$3000: Dean
-- Above $3001: Finance Committee
