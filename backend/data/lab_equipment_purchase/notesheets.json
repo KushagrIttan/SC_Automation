@@ -1,0 +1,17 @@
+[
+  {
+    "id": "NS-20250101-001",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head of Department, Robotics\nFROM: Lab In-charge\nSUBJECT: Sanction of ₹75,000 for purchase of Digital Oscilloscopes\n\nThis is to request sanction for the procurement of 3 Digital Oscilloscopes (Model: Tektronix TBS 2104) for the Advanced Electronics Lab at an estimated cost of ₹75,000.\n\nJustification: The current oscilloscopes are 8 years old and lack modern features required for signal analysis in robotics projects. The new equipment will enhance student learning outcomes in embedded systems courses.\n\nPrecedent: Similar equipment was sanctioned vide order NS-20240615-002 for ₹80,000.\n\nRules Cited: GFR Rule 153 (procurement thresholds), GGSIPU Equipment Purchase Guidelines 2023.\n\nApproval Chain: Lab In-charge → HoD → Dean (for amounts above ₹50,000)\n\nSupporting Documents: Quotations (3), Comparative Statement, Technical Specifications, Purchase Committee Approval\n\nApproved Amount: ₹75,000\nStatus: Approved on 2025-01-15"
+  },
+  {
+    "id": "NS-20241115-002",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Dean, Engineering\nFROM: Department of Automation\nSUBJECT: Sanction of ₹1,20,000 for Industrial Robot Arm\n\nRequest for procurement of 1 Industrial Robot Arm (6-DOF) for the Automation Lab at ₹1,20,000.\n\nJustification: Required for Industry 4.0 training program. Current equipment inadequate for teaching modern automation techniques.\n\nPrecedent: Robot procurement approved vide NS-20230920-005 for ₹1,50,000.\n\nRules Cited: GFR Rule 153, GGSIPU Capital Equipment Guidelines, Make in India preference under Rule 159.\n\nApproval Chain: HoD → Dean → Finance Committee → Director\n\nSupporting Documents: Quotations (3), Technical Evaluation Report, Purchase Committee Minutes, Budget Approval\n\nApproved Amount: ₹1,20,000\nStatus: Approved on 2024-11-30"
+  },
+  {
+    "id": "NS-20240815-003",
+    "category": "lab_equipment_purchase",
+    "content": "TO: Head, Electronics Department\nFROM: Lab Coordinator\nSUBJECT: Sanction of ₹45,000 for Microcontroller Development Kits\n\nRequest for 15 Arduino Mega 2560 Development Kits with accessories at ₹45,000.\n\nJustification: Required for IoT and Embedded Systems practical courses for 60 students.\n\nPrecedent: Development kits sanctioned vide NS-20230612-008 for ₹40,000.\n\nRules Cited: GFR Rule 153, GGSIPU Lab Equipment Guidelines.\n\nApproval Chain: Lab Coordinator → HoD (for amounts below ₹50,000)\n\nSupporting Documents: Quotations (3), Comparative Statement\n\nApproved Amount: ₹45,000\nStatus: Approved on 2024-08-20"
+  }
+]

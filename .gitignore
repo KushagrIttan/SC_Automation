@@ -34,6 +34,5 @@ Thumbs.db
 backend/*.log
 *.db
 backend/notesheet.db
-backend/data/
 .hermes/
 nul
