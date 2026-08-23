@@ -593,6 +593,63 @@ def get_knowledge_base(q: Optional[str] = None):
 # Routes: Categories
 # ---------------------------------------------------------------------------
 
+@app.get("/api/knowledge-base/stats")
+def knowledge_base_stats():
+    """Corpus statistics for the Knowledge Base dashboard."""
+    counts = _precedent_citation_counts()
+
+    doc_count = 0
+    mtimes: list = []
+    title_by_id: dict = {}
+    for cat in categories:
+        cat_dir = os.path.join(settings.data_dir, cat)
+        for fname in [
+            "notesheets.json",
+            "gfr_rules.json",
+            "completeness_checklist.json",
+            "approval_thresholds.json",
+        ]:
+            path = os.path.join(cat_dir, fname)
+            if not os.path.exists(path):
+                continue
+            doc_count += 1
+            mtimes.append(os.stat(path).st_mtime)
+            if fname == "notesheets.json":
+                try:
+                    with open(path, encoding="utf-8") as fh:
+                        entries = json.load(fh)
+                    for e in entries:
+                        pid = e.get("id")
+                        if not pid:
+                            continue
+                        subject = next(
+                            (
+                                line[len("SUBJECT:"):].strip()
+                                for line in e.get("content", "").splitlines()
+                                if line.startswith("SUBJECT:")
+                            ),
+                            None,
+                        )
+                        title_by_id[pid] = subject or pid
+                except (json.JSONDecodeError, OSError):
+                    pass
+
+    most_cited = sorted(counts.items(), key=lambda kv: -kv[1])[:5]
+    return {
+        "totalDocuments": doc_count,
+        "totalChunksIndexed": int(faiss_index.ntotal),
+        # Index is rebuilt at boot from these files, so newest corpus file
+        # mtime is the honest proxy for the last re-index time.
+        "lastReindexedAt": (
+            datetime.fromtimestamp(max(mtimes)).isoformat() if mtimes else None
+        ),
+        "mostCitedDocuments": [
+            {"id": pid, "title": title_by_id.get(pid, pid), "citedCount": n}
+            for pid, n in most_cited
+        ],
+    }
+
+
 @app.get("/api/categories")
 def list_categories():
     """Return all available categories with their metadata."""

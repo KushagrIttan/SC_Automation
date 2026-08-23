@@ -17,7 +17,8 @@ export default function KnowledgeBasePage() {
   const { stats, isLoading: statsLoading } = useRetrievalStats()
   const { results, isLoading: searchLoading } = useKnowledgeSearch(query.trim())
   const displayedDocuments = query.trim() ? results : documents
-  const maxCitations = stats?.mostCitedDocuments[0]?.citedCount ?? 1
+  const mostCited = stats?.mostCitedDocuments ?? []
+  const maxCitations = mostCited[0]?.citedCount ?? 1
 
   return (
     <div className="flex flex-col gap-6 text-foreground">
@@ -41,7 +42,7 @@ export default function KnowledgeBasePage() {
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard icon={<Database className="size-4 text-primary" />} label="Indexed documents" value={stats?.totalDocuments} loading={statsLoading} />
         <StatCard icon={<Files className="size-4 text-primary" />} label="Searchable chunks" value={stats?.totalChunksIndexed.toLocaleString("en-IN")} loading={statsLoading} />
-        <StatCard icon={<FileSearch className="size-4 text-primary" />} label="Last re-indexed" value={stats ? formatDateTime(stats.lastReindexedAt) : undefined} loading={statsLoading} />
+        <StatCard icon={<FileSearch className="size-4 text-primary" />} label="Last re-indexed" value={stats?.lastReindexedAt ? formatDateTime(stats.lastReindexedAt) : undefined} loading={statsLoading} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
@@ -97,7 +98,9 @@ export default function KnowledgeBasePage() {
             <CardDescription>Documents most often selected as grounding context.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 py-5">
-            {statsLoading ? <><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></> : stats?.mostCitedDocuments.map((document, index) => (
+            {statsLoading ? <><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></> : mostCited.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No citations recorded yet — generate and approve note sheets to build retrieval history.</p>
+            ) : mostCited.map((document, index) => (
               <div key={document.id} className="flex flex-col gap-1.5">
                 <div className="flex items-start gap-2"><span className="mt-0.5 font-mono text-[11px] text-primary">{String(index + 1).padStart(2, "0")}</span><p className="line-clamp-2 flex-1 text-xs font-medium leading-relaxed">{document.title}</p><span className="font-mono text-[11px] text-muted-foreground">{document.citedCount}</span></div>
                 <div className="ml-5 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-accent" style={{ width: `${(document.citedCount / maxCitations) * 100}%` }} /></div>
