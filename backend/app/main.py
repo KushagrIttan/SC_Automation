@@ -13,6 +13,7 @@ import faiss
 import numpy as np
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.orm import Session
@@ -21,6 +22,7 @@ from typing import Optional, List
 from .config import settings
 from .database import get_db, SessionLocal, Prof, Notesheet, _utcnow
 from .approval_api import router as approval_router
+from .documents_api import router as documents_router
 from .llm import get_llm_provider, switch_provider
 
 log = logging.getLogger(__name__)
@@ -42,6 +44,7 @@ app.add_middleware(
 
 # Include approval sub-router (once!)
 app.include_router(approval_router, prefix="/api")
+app.include_router(documents_router, prefix="/api")
 
 # ---------------------------------------------------------------------------
 # Startup: embeddings, FAISS, category metadata
@@ -140,6 +143,8 @@ class NotesheetRequest(BaseModel):
     department: Optional[str] = None
     amount: Optional[float] = None
     documents: Optional[List[str]] = None
+    # Text extracted from uploaded reference PDFs; feeds retrieval + prompt.
+    extra_context: Optional[str] = None
 
 
 class LLMSettingsRequest(BaseModel):
@@ -179,7 +184,8 @@ def get_approval_chain(amount: float, category: str) -> list:
     return []
 
 
-def draft_notesheet(request_details: dict, top_precedents: list, category: str) -> dict:
+def draft_notesheet(request_details: dict, top_precedents: list, category: str,
+                    extra_context: str = "") -> dict:
     """Generate a draft using the active LLM provider, with template fallback."""
     applicable_rules = category_meta.get(category, {}).get("rules", [])
     try:
@@ -190,6 +196,12 @@ def draft_notesheet(request_details: dict, top_precedents: list, category: str) 
                 f"Cite applicable rules from this list: {applicable_rules}. "
                 "End the note sheet with a line exactly formatted as 'Rules Cited: <comma-separated rule names>' "
                 "using only rules from that list that genuinely apply.\n"
+            )
+        if extra_context.strip():
+            excerpt = extra_context.strip()[:3000]
+            prompt += (
+                "The requester also uploaded a reference document. Use it as supporting context "
+                f"where relevant:\n---BEGIN REFERENCE DOCUMENT---\n{excerpt}\n---END REFERENCE DOCUMENT---\n"
             )
         if "amount" in request_details:
             prompt += "Include a budget table with line items, GST, and total."
@@ -249,28 +261,49 @@ def health_check():
 # Routes: Notesheet CRUD
 # ---------------------------------------------------------------------------
 
-@app.post("/api/notesheets/generate")
-async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(get_db)):
+async def _generation_pipeline(request: NotesheetRequest, db: Session, emit) -> dict:
+    """Run the full drafting pipeline, calling emit(stage, status, **extra)
+    at each real transition so both the sync and streaming endpoints share
+    identical logic."""
     try:
         if request.category not in categories:
             raise HTTPException(400, "Invalid category")
 
+        await asyncio.to_thread(emit, "retrieve", "started")
         request_details = extract_request_details(request.request_text, request.category)
 
-        # Precedent retrieval via FAISS
-        query_embedding = embedding_model.encode(f"{request.category}: {request.request_text}")
+        # Precedent retrieval via FAISS — uploaded reference text is embedded
+        # together with the prompt so it influences similarity matching.
+        embedding_input = f"{request.category}: {request.request_text}"
+        if request.extra_context:
+            embedding_input += f"\n{request.extra_context[:4000]}"
+        query_embedding = embedding_model.encode(embedding_input)
         try:
             distances, indices = faiss_index.search(np.array([query_embedding]), 3)
         except Exception:
             top_precedents = []
         else:
             top_precedents = [note_texts[i] for i in indices[0] if i < len(note_texts)]
+        await asyncio.to_thread(emit, "retrieve", "done", precedents=len(top_precedents))
 
-        # Run the blocking LLM + retrieval work off the event loop so the
-        # server stays responsive while the model generates.
+        await asyncio.to_thread(emit, "rules", "started")
+        applicable_rules = category_meta.get(request.category, {}).get("rules", [])
+        await asyncio.to_thread(emit, "rules", "done", count=len(applicable_rules))
+
+        provider_name = get_llm_provider().provider_name()
+        await asyncio.to_thread(emit, "draft", "started", provider=provider_name)
+        # Run the blocking LLM call off the event loop so the server stays
+        # responsive while the model generates.
         draft_result = await asyncio.to_thread(
-            draft_notesheet, request_details, top_precedents, request.category
+            draft_notesheet, request_details, top_precedents, request.category,
+            request.extra_context or "",
         )
+        if draft_result.get("error"):
+            await asyncio.to_thread(emit, "draft", "fallback", detail=str(draft_result["error"])[:200])
+        else:
+            await asyncio.to_thread(emit, "draft", "done")
+
+        await asyncio.to_thread(emit, "review", "started")
         rules_cited = extract_rules_cited(draft_result.get("draft_text", ""))
 
         # Completeness check — required docs per category minus what was supplied.
@@ -317,6 +350,9 @@ async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(ge
         )
         db.add(db_ns)
         db.commit()
+        await asyncio.to_thread(
+            emit, "review", "done", missing=len(documents_missing), chain=len(approval_chain)
+        )
 
         return {
             "id": ns_id,
@@ -337,9 +373,61 @@ async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(ge
     except HTTPException:
         raise
     except Exception as e:
-        log.exception("Error in generate_notesheet")
+        log.exception("Error in generation pipeline")
         traceback.print_exc()
         raise HTTPException(500, f"Internal error: {str(e)}")
+
+
+def _noop_emit(*args, **kwargs) -> None:
+    pass
+
+
+@app.post("/api/notesheets/generate")
+async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(get_db)):
+    return await _generation_pipeline(request, db, _noop_emit)
+
+
+@app.post("/api/notesheets/generate/stream")
+async def generate_notesheet_stream(request: NotesheetRequest, db: Session = Depends(get_db)):
+    """Same pipeline as /generate but emits newline-delimited JSON progress
+    events as each real stage completes. Final line carries stage=complete
+    with the full result payload (or stage=error)."""
+
+    async def event_stream():
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue = asyncio.Queue()
+
+        def emit(stage: str, status: str, **extra) -> None:
+            payload = {"stage": stage, "status": status, **extra}
+            loop.call_soon_threadsafe(queue.put_nowait, json.dumps(payload))
+
+        async def runner():
+            try:
+                result = await _generation_pipeline(request, db, emit)
+                await queue.put(json.dumps({"stage": "complete", "result": result}))
+            except HTTPException as e:
+                await queue.put(json.dumps({"stage": "error", "detail": e.detail}))
+            except Exception as e:
+                log.exception("Streamed generation failed")
+                await queue.put(json.dumps({"stage": "error", "detail": str(e)}))
+            finally:
+                await queue.put(None)  # sentinel
+
+        task = asyncio.create_task(runner())
+        try:
+            while True:
+                item = await queue.get()
+                if item is None:
+                    break
+                yield item + "\n"
+        finally:
+            task.cancel()
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/api/notesheets")

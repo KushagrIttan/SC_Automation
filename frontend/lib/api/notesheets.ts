@@ -141,6 +141,21 @@ export interface GenerateDraftInput {
   requesterName?: string
   department?: string
   amountHint?: number
+  /** Text extracted from uploaded reference PDFs (RAG context). */
+  extraContext?: string
+  documents?: string[]
+}
+
+function buildGenerateBody(input: GenerateDraftInput): string {
+  return JSON.stringify({
+    request_text: input.prompt,
+    category: CATEGORY_SLUGS[input.category] ?? input.category,
+    requester_name: input.requesterName || undefined,
+    department: input.department || undefined,
+    amount: input.amountHint && input.amountHint > 0 ? input.amountHint : undefined,
+    extra_context: input.extraContext?.trim() ? input.extraContext : undefined,
+    documents: input.documents?.length ? input.documents : undefined,
+  })
 }
 
 /** Calls the FastAPI `/api/notesheets/generate` endpoint (RAG + LLM). */
@@ -150,13 +165,7 @@ export async function generateDraft(
   const res = await fetch(`${API_BASE}/api/notesheets/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      request_text: input.prompt,
-      category: CATEGORY_SLUGS[input.category] ?? input.category,
-      requester_name: input.requesterName || undefined,
-      department: input.department || undefined,
-      amount: input.amountHint && input.amountHint > 0 ? input.amountHint : undefined,
-    }),
+    body: buildGenerateBody(input),
   })
   if (!res.ok) {
     const msg = await res.text().catch(() => res.statusText)
@@ -164,4 +173,81 @@ export async function generateDraft(
   }
   const raw = (await res.json()) as BackendNoteSheet
   return mapBackendNoteSheet(raw)
+}
+
+/** Real pipeline stage events emitted by the streaming backend endpoint. */
+export type PipelineStage = "retrieve" | "rules" | "draft" | "review"
+
+export interface StageEvent {
+  stage: PipelineStage | "complete" | "error"
+  status?: "started" | "done" | "fallback"
+  precedents?: number
+  count?: number
+  provider?: string
+  missing?: number
+  chain?: number
+  detail?: string
+  result?: BackendNoteSheet
+}
+
+/**
+ * Streams `/api/notesheets/generate/stream` (NDJSON). Every event reflects a
+ * real backend transition — retrieval done, LLM started/finished, review done.
+ * Falls back to the non-streaming endpoint if the stream cannot even start.
+ */
+export async function generateDraftStream(
+  input: GenerateDraftInput,
+  onEvent: (event: StageEvent) => void,
+  signal?: AbortSignal
+): Promise<NoteSheet> {
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE}/api/notesheets/generate/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: buildGenerateBody(input),
+      signal,
+    })
+  } catch (err) {
+    // Network-level failure before any stream: use plain endpoint so the
+    // error surfaces identically either way.
+    return generateDraft(input)
+  }
+  if (!res.ok || !res.body) {
+    const msg = await res.text().catch(() => res.statusText)
+    throw new Error(`Draft generation failed: ${msg}`)
+  }
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ""
+  let final: NoteSheet | null = null
+
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let newlineIndex: number
+    while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+      const line = buffer.slice(0, newlineIndex).trim()
+      buffer = buffer.slice(newlineIndex + 1)
+      if (!line) continue
+      let event: StageEvent
+      try {
+        event = JSON.parse(line) as StageEvent
+      } catch {
+        continue
+      }
+      if (event.stage === "complete" && event.result) {
+        final = mapBackendNoteSheet(event.result)
+      } else if (event.stage === "error") {
+        throw new Error(event.detail || "Generation failed")
+      } else {
+        onEvent(event)
+      }
+    }
+  }
+
+  if (!final) throw new Error("Generation stream ended without a result")
+  return final
 }
