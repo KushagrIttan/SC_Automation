@@ -1,16 +1,23 @@
 "use client"
 
 import { useMemo } from "react"
+import useSWR from "swr"
 import { ShieldCheck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { NoteSheetListTable } from "@/components/notesheet/notesheet-list-table"
+import { ApprovalQueueActions } from "@/components/notesheet/approval-queue-actions"
 import { useNoteSheets } from "@/hooks/use-notesheets"
+import { fetchApprovalInbox } from "@/lib/api/approvals"
 
 export default function ApprovalsPage() {
   const { noteSheets, isLoading } = useNoteSheets()
+  const { data: inbox, isLoading: inboxLoading } = useSWR("approval-inbox", fetchApprovalInbox)
 
-  const pending = useMemo(() => noteSheets.filter((ns) => ns.status === "Pending Approval"), [noteSheets])
+  const pending = useMemo(() => {
+    const ids = new Set((inbox ?? []).map((item) => item.notesheet_id))
+    return noteSheets.filter((ns) => ids.has(ns.id))
+  }, [inbox, noteSheets])
   const resolved = useMemo(
     () => noteSheets.filter((ns) => ns.status === "Approved" || ns.status === "Rejected"),
     [noteSheets],
@@ -26,7 +33,7 @@ export default function ApprovalsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-semibold text-primary">
-            {isLoading ? <Skeleton className="h-8 w-12" /> : pending.length}
+            {isLoading || inboxLoading ? <Skeleton className="h-8 w-12" /> : pending.length}
           </CardContent>
         </Card>
         <Card>
@@ -59,14 +66,18 @@ export default function ApprovalsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          {isLoading ? (
+          {isLoading || inboxLoading ? (
             <div className="flex flex-col gap-2">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <NoteSheetListTable noteSheets={pending} emptyLabel="No note sheets are awaiting your sign-off" />
+            <NoteSheetListTable
+              noteSheets={pending}
+              emptyLabel="No note sheets are awaiting your sign-off"
+              actions={(noteSheet) => <ApprovalQueueActions noteSheetId={noteSheet.id} />}
+            />
           )}
         </CardContent>
       </Card>

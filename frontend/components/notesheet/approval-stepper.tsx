@@ -116,7 +116,11 @@ function ApproverNode({ approver, open, onToggle }: { approver: Approver; open: 
       {open && (approver.status === "Approved" || approver.status === "Rejected") && (
         <div className={cn("mt-1 rounded-sm border p-2 text-[11px] leading-relaxed", approver.status === "Rejected" ? "border-destructive/30 bg-destructive/[0.08] text-destructive" : "border-accent/30 bg-accent/[0.08] text-foreground")}>
           {approver.status === "Approved" ? (
-            <><span className="flex items-center gap-1 font-medium"><PenLine className="size-3" /> E-signed by {approver.signature ?? approver.name}</span><span className="mt-1 block text-muted-foreground">{approver.signedAt ? formatDateTime(approver.signedAt) : "Timestamp unavailable"}</span></>
+            <>
+              <span className="flex items-center gap-1 font-medium"><PenLine className="size-3" /> E-signed by {approver.name}</span>
+              {approver.signature && <img src={approver.signature} alt={`Signature of ${approver.name}`} className="mt-2 h-8 max-w-24 object-contain object-left" />}
+              <span className="mt-1 block text-muted-foreground">{approver.signedAt ? formatDateTime(approver.signedAt) : "Timestamp unavailable"}</span>
+            </>
           ) : (
             <><span className="font-medium">Returned with remarks</span><span className="mt-1 block">{approver.rejectionReason ?? "No reason was recorded."}</span></>
           )}

@@ -8,13 +8,21 @@ export interface ApprovalStatus {
     stage_order: number
     name: string
     approvers: {
-      prof_id: number
-      prof_name: string | null
+      user_id: number
+      name: string | null
+      signature: string | null
       status: "pending" | "approved" | "rejected"
       approved_at: string | null
       rejection_reason: string | null
     }[]
   }[]
+}
+
+export async function fetchApprovalInbox(): Promise<{ notesheet_id: string; stage: string }[]> {
+  const response = await apiFetch<{ items: { notesheet_id: string; stage: string }[] }>("/api/approvals/inbox", {
+    cache: "no-store",
+  })
+  return response.items
 }
 
 export async function fetchApprovalStatus(id: string): Promise<ApprovalStatus | null> {
@@ -34,8 +42,7 @@ export async function submitNoteSheetForApproval(id: string): Promise<{ id: stri
 
 export async function approveNoteSheet(
   id: string,
-  profId?: number
-): Promise<{ id: string; status: string; stages_left: number }> {
+): Promise<{ id: string; status: string; stages_left: number; signature?: string | null }> {
   interface ApproveResp extends Record<string, unknown> {
     id: string
     status: string
@@ -45,7 +52,7 @@ export async function approveNoteSheet(
   }
   const out = await apiFetch<ApproveResp>(`/api/notesheets/${encodeURIComponent(id)}/approve`, {
     method: "POST",
-    json: { prof_id: profId },
+    json: {},
   })
   return { id: out.id, status: out.status, stages_left: out.stages_left, signature: out.signature }
 }

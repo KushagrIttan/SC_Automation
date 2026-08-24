@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 
 from .config import settings
-from .database import get_db, SessionLocal, User, Notesheet, _utcnow
+from .database import get_db, SessionLocal, User, Notesheet, NotesheetDocument, _utcnow, StageApprover
 from .auth import get_current_user, require_roles
 from .approval_api import router as approval_router
 from .documents_api import router as documents_router
@@ -230,11 +230,11 @@ def get_approval_chain(amount: float, category: str) -> list:
 
 
 def draft_notesheet(request_details: dict, top_precedents: list, category: str,
-                    extra_context: str = "") -> dict:
-    """Generate a draft using the active LLM provider, with template fallback."""
+                    extra_context: str = "", request_text: str = "") -> dict:
+    """Generate named note-sheet sections using the active LLM provider."""
     applicable_rules = category_meta.get(category, {}).get("rules", [])
     try:
-        prompt = f"Draft official note sheet for {category} request: {request_details}.\n"
+        prompt = f"Draft official note sheet for {category}. The user requested:\n'{request_text}'\n\nExtracted details: {request_details}.\n"
         prompt += f"Cite at least 2 most relevant precedents from: {top_precedents}.\n"
         if applicable_rules:
             prompt += (
@@ -251,16 +251,109 @@ def draft_notesheet(request_details: dict, top_precedents: list, category: str,
         if "amount" in request_details:
             prompt += "Include a budget table with line items, GST, and total."
 
+        prompt += """
+
+Return exactly one valid JSON object. Do not use Markdown fences or add any text outside the JSON.
+Use this exact shape:
+{
+  "draft_text": "The complete official note-sheet text only. Do not include approval-chain or routing text, nor headings named Justification, AI reasoning, budget data, or wording suggestions here.",
+  "justification": "A concise standalone justification for this request.",
+  "ai_reasoning": "A concise explanation of the precedents, rules, and approval routing used to prepare this request.",
+  "approval_chain": ["First approval role", "Next approval role", "Final approval role"],
+  "budget_items": [{"item": "item name", "quantity": 1, "unit_cost": 0, "gst_percent": 0}],
+  "wording_suggestions": [{"before": "optional original wording", "after": "optional improved wording", "reason": "why the change helps"}]
+}
+Return the approval_chain as an ordered array of approval roles or offices. It is displayed separately by the application, so do not mention approvers, approval levels, approval routing, or an approval chain in draft_text. Use an empty approval_chain array only when no routing can be determined. Use empty arrays when there are no budget items or wording suggestions. Do not invent facts, amounts, rules, precedents, or quotations that are not supported by the request or supplied context.
+"""
+
         provider = get_llm_provider()
-        draft_text = provider.generate(prompt)
+        sections = parse_generated_sections(provider.generate(prompt))
         return {
-            "draft_text": draft_text,
+            **sections,
             "draft_source": provider.provider_name(),
         }
     except Exception as e:
         log.exception("LLM call failed, falling back to template")
         template = _generate_template(request_details, category)
-        return {"draft_text": template, "draft_source": "template", "error": str(e)}
+        return {
+            "draft_text": template,
+            "justification": request_text.strip(),
+            "ai_reasoning": "The LLM was unavailable, so this static fallback was prepared from the request details.",
+            "approval_chain": [],
+            "budget_items": [],
+            "wording_suggestions": [],
+            "draft_source": "template",
+            "error": str(e),
+        }
+
+
+_APPROVAL_CHAIN_SECTION_RE = re.compile(
+    r"\n\s*(?:#{1,6}\s*)?(?:approval\s*(?:chain|route|routing)|recommended\s*approvals?)\s*:?\s*(?:\n|$).*",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _without_approval_chain(draft_text: str) -> str:
+    """Remove a labelled routing appendix; routing belongs in its own panel."""
+    return _APPROVAL_CHAIN_SECTION_RE.sub("", draft_text).strip()
+
+
+def parse_generated_sections(response_text: str) -> dict:
+    """Parse the LLM's sectioned JSON, with a safe fallback for older replies."""
+    raw = (response_text or "").strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw, flags=re.IGNORECASE).strip()
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        data = None
+
+    # Be tolerant of a short preamble despite the contract above. Gemini can
+    # occasionally wrap otherwise valid JSON in one explanatory sentence.
+    if data is None:
+        start, end = raw.find("{"), raw.rfind("}")
+        if start != -1 and end > start:
+            try:
+                data = json.loads(raw[start : end + 1])
+            except json.JSONDecodeError:
+                pass
+
+    if isinstance(data, dict):
+        draft_text = _without_approval_chain(str(data.get("draft_text") or data.get("draft") or ""))
+        justification = str(data.get("justification") or "").strip()
+        ai_reasoning = str(data.get("ai_reasoning") or data.get("reasoning") or "").strip()
+        approval_chain = data.get("approval_chain") if isinstance(data.get("approval_chain"), list) else []
+        budget_items = data.get("budget_items") if isinstance(data.get("budget_items"), list) else []
+        wording_suggestions = data.get("wording_suggestions") if isinstance(data.get("wording_suggestions"), list) else []
+        if draft_text:
+            return {
+                "draft_text": draft_text,
+                "justification": justification,
+                "ai_reasoning": ai_reasoning,
+                "approval_chain": [str(role).strip() for role in approval_chain if str(role).strip()],
+                "budget_items": budget_items,
+                "wording_suggestions": wording_suggestions,
+            }
+
+    # Older models occasionally return labelled prose. Keep labelled content
+    # out of the note-sheet body instead of displaying their entire reply there.
+    parts = re.split(r"^\s*(?:#{1,6}\s*)?(justification|ai reasoning|reasoning)\s*:?\s*$", raw, flags=re.IGNORECASE | re.MULTILINE)
+    draft_text = _without_approval_chain(parts[0])
+    extracted = {"justification": "", "ai_reasoning": ""}
+    for index in range(1, len(parts), 2):
+        label, value = parts[index].lower(), parts[index + 1].strip()
+        if label == "justification":
+            extracted["justification"] = value
+        else:
+            extracted["ai_reasoning"] = value
+    return {
+        "draft_text": draft_text or raw,
+        **extracted,
+        "approval_chain": [],
+        "budget_items": [],
+        "wording_suggestions": [],
+    }
 
 
 _RULE_PATTERN = re.compile(r"(?:GFR|DFPR)\s+Rules?\s*\d+[A-Za-z]*(?:\s*\([a-zA-Z]\))?", re.IGNORECASE)
@@ -348,7 +441,7 @@ async def _generation_pipeline(request: NotesheetRequest, db: Session, emit,
         # responsive while the model generates.
         draft_result = await asyncio.to_thread(
             draft_notesheet, request_details, top_precedents, request.category,
-            request.extra_context or "",
+            request.extra_context or "", request.request_text,
         )
         if draft_result.get("error"):
             await asyncio.to_thread(emit, "draft", "fallback", detail=str(draft_result["error"])[:200])
@@ -363,9 +456,12 @@ async def _generation_pipeline(request: NotesheetRequest, db: Session, emit,
         provided = {d.strip().lower() for d in (request.documents or [])}
         documents_missing = [item for item in checklist if item.strip().lower() not in provided]
 
-        # Approval chain
+        # Use the LLM's routing in the dedicated Approval chain panel. The
+        # category/amount policy chain remains a fallback for malformed or
+        # incomplete LLM responses.
         amount = request.amount if request.amount else request_details.get("amount", 0)
-        approval_chain = get_approval_chain(amount, request.category)
+        generated_chain = draft_result.get("approval_chain", [])
+        approval_chain = generated_chain if generated_chain else get_approval_chain(amount, request.category)
 
         # Serialise precedents
         precedents_serializable = []
@@ -387,6 +483,10 @@ async def _generation_pipeline(request: NotesheetRequest, db: Session, emit,
             category=request.category,
             request_text=request.request_text,
             draft_text=draft_result["draft_text"],
+            justification=draft_result.get("justification"),
+            ai_reasoning=draft_result.get("ai_reasoning"),
+            budget_items_json=json.dumps(draft_result.get("budget_items", [])),
+            wording_suggestions_json=json.dumps(draft_result.get("wording_suggestions", [])),
             draft_source=draft_result["draft_source"],
             status="draft",
             amount=amount if amount else None,
@@ -412,6 +512,10 @@ async def _generation_pipeline(request: NotesheetRequest, db: Session, emit,
             "request_text": request.request_text,
             "category": request.category,
             "draft_text": draft_result["draft_text"],
+            "justification": draft_result.get("justification", ""),
+            "ai_reasoning": draft_result.get("ai_reasoning", ""),
+            "budget_items": draft_result.get("budget_items", []),
+            "wording_suggestions": draft_result.get("wording_suggestions", []),
             "draft_source": draft_result["draft_source"],
             "status": "draft",
             "amount": amount if amount else None,
@@ -420,6 +524,7 @@ async def _generation_pipeline(request: NotesheetRequest, db: Session, emit,
             "precedents_used": precedents_serializable,
             "rules_cited": rules_cited,
             "documents_missing": documents_missing,
+            "uploaded_documents": [],
             "approval_chain": approval_chain,
             "error": draft_result.get("error"),
         }
@@ -433,6 +538,26 @@ async def _generation_pipeline(request: NotesheetRequest, db: Session, emit,
 
 def _noop_emit(*args, **kwargs) -> None:
     pass
+
+
+def _uploaded_document_payloads(db: Session, notesheet_id: str) -> list:
+    """Return upload metadata; the original PDF bytes stay in the database."""
+    documents = (
+        db.query(NotesheetDocument)
+        .filter(NotesheetDocument.notesheet_id == notesheet_id)
+        .order_by(NotesheetDocument.created_at.asc())
+        .all()
+    )
+    return [
+        {
+            "id": document.id,
+            "filename": document.filename,
+            "content_type": document.content_type,
+            "size": len(document.file_data),
+            "created_at": document.created_at.isoformat() if document.created_at else None,
+        }
+        for document in documents
+    ]
 
 
 @app.post("/api/notesheets/generate")
@@ -506,6 +631,10 @@ def list_notesheets(db: Session = Depends(get_db), user: User = Depends(get_curr
             "category": ns.category,
             "request_text": ns.request_text,
             "draft_text": ns.draft_text,
+            "justification": ns.justification,
+            "ai_reasoning": ns.ai_reasoning,
+            "budget_items": json.loads(ns.budget_items_json) if ns.budget_items_json else [],
+            "wording_suggestions": json.loads(ns.wording_suggestions_json) if ns.wording_suggestions_json else [],
             "draft_source": ns.draft_source,
             "status": ns.status,
             "amount": ns.amount,
@@ -515,6 +644,7 @@ def list_notesheets(db: Session = Depends(get_db), user: User = Depends(get_curr
             "rules_cited": json.loads(ns.rules_json) if ns.rules_json else [],
             "approval_chain": json.loads(ns.approval_chain_json) if ns.approval_chain_json else [],
             "documents_missing": json.loads(ns.documents_missing_json) if ns.documents_missing_json else [],
+            "uploaded_documents": _uploaded_document_payloads(db, ns.id),
             "error": ns.error,
             "created_at": ns.created_at.isoformat() if ns.created_at else None,
             "updated_at": ns.updated_at.isoformat() if ns.updated_at else None,
@@ -534,6 +664,10 @@ def get_notesheet(ns_id: str, db: Session = Depends(get_db)):
         "category": ns.category,
         "request_text": ns.request_text,
         "draft_text": ns.draft_text,
+        "justification": ns.justification,
+        "ai_reasoning": ns.ai_reasoning,
+        "budget_items": json.loads(ns.budget_items_json) if ns.budget_items_json else [],
+        "wording_suggestions": json.loads(ns.wording_suggestions_json) if ns.wording_suggestions_json else [],
         "draft_source": ns.draft_source,
         "status": ns.status,
         "amount": ns.amount,
@@ -543,6 +677,7 @@ def get_notesheet(ns_id: str, db: Session = Depends(get_db)):
         "rules_cited": json.loads(ns.rules_json) if ns.rules_json else [],
         "approval_chain": json.loads(ns.approval_chain_json) if ns.approval_chain_json else [],
         "documents_missing": json.loads(ns.documents_missing_json) if ns.documents_missing_json else [],
+        "uploaded_documents": _uploaded_document_payloads(db, ns.id),
         "error": ns.error,
         "created_at": ns.created_at.isoformat() if ns.created_at else None,
         "updated_at": ns.updated_at.isoformat() if ns.updated_at else None,

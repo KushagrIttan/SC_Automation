@@ -37,6 +37,7 @@ export function NoteSheetDetail({
   const [editing, setEditing] = useState(false)
   const [comparing, setComparing] = useState(false)
   const [editedText, setEditedText] = useState(noteSheet.editedText ?? noteSheet.draftText)
+  const [uploadedDocuments, setUploadedDocuments] = useState(noteSheet.uploadedDocuments)
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -160,7 +161,12 @@ export function NoteSheetDetail({
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <RequiredDocuments documents={noteSheet.requiredDocuments} />
+            <RequiredDocuments
+              documents={noteSheet.requiredDocuments}
+              noteSheetId={noteSheet.id}
+              uploadedDocuments={uploadedDocuments}
+              onDocumentUploaded={(document) => setUploadedDocuments((current) => [...current, document])}
+            />
           </CardContent>
         </Card>
 
