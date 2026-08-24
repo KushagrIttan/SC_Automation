@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     # --- Auth ---
     auth_secret: str = "dev-secret-change-me-in-production"
 
+    # --- Database ---
+    notesheet_db_file: str = "notesheet.db"
+
     # --- Data ---
     data_dir: str = os.path.join(os.path.dirname(__file__), "..", "data")
 

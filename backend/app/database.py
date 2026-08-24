@@ -4,8 +4,13 @@ from sqlalchemy.orm import relationship, sessionmaker
 from datetime import datetime, timezone
 import os
 
+# File name configurable via backend/.env (NOTESHEET_DB_FILE) so a locked
+# legacy file can be swapped without code changes.
+from .config import settings
+
+_DB_FILE = settings.notesheet_db_file
 SQLALCHEMY_DATABASE_URL = "sqlite:///" + os.path.join(
-    os.path.dirname(__file__), "..", "notesheet.db"
+    os.path.dirname(__file__), "..", _DB_FILE
 )
 
 engine = create_engine(
