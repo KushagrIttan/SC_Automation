@@ -11,6 +11,7 @@ import {
   FileStack,
   Settings,
   Stamp,
+  UsersRound,
 } from "lucide-react"
 
 import {
@@ -27,6 +28,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { UserSettingsMenu } from "@/components/user-settings-menu"
+import { useAuth } from "@/components/providers/auth-provider"
+import { ROUTE_ACCESS, ROLE_LABELS } from "@/lib/access"
+import type { Role } from "@/lib/api/auth"
 
 const primaryNav = [
   { title: "New Request", href: "/new-request", icon: FilePlus2 },
@@ -44,8 +48,24 @@ const insightsNav = [
   { title: "Settings", href: "/settings", icon: Settings },
 ]
 
+const adminNav = [{ title: "User Management", href: "/users", icon: UsersRound }]
+
 export function AppSidebar() {
   const pathname = usePathname()
+  const { user } = useAuth()
+  const role = user?.role as Role | undefined
+
+  function visible(items: { href: string; title: string; icon: unknown }[]) {
+    return items.filter((item) => {
+      const allowed = ROUTE_ACCESS[item.href]
+      return !allowed || (role ? allowed.includes(role) : false)
+    })
+  }
+
+  const primary = visible(primaryNav)
+  const library = visible(libraryNav)
+  const insights = visible(insightsNav)
+  const admin = role === "admin" ? adminNav : []
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -72,7 +92,7 @@ export function AppSidebar() {
           <SidebarGroupLabel className="font-mono text-[10px] tracking-wider">Draft &amp; Route</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {primaryNav.map((item) => (
+              {primary.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     render={<Link href={item.href} />}
@@ -91,7 +111,7 @@ export function AppSidebar() {
           <SidebarGroupLabel className="font-mono text-[10px] tracking-wider">Reference</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {libraryNav.map((item) => (
+              {library.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     render={<Link href={item.href} />}
@@ -110,7 +130,7 @@ export function AppSidebar() {
           <SidebarGroupLabel className="font-mono text-[10px] tracking-wider">Insights</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {insightsNav.map((item) => (
+              {insights.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     render={<Link href={item.href} />}
@@ -125,6 +145,27 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {admin.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="font-mono text-[10px] tracking-wider">Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {admin.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={pathname.startsWith(item.href)}
+                      tooltip={item.title}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter className="px-3 py-3">
         <UserSettingsMenu />

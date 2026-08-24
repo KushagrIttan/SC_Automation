@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Source_Serif_4 } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ThemeProvider } from 'next-themes'
+import { AuthProvider } from '@/components/providers/auth-provider'
 import './globals.css'
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
@@ -45,8 +46,10 @@ export default function RootLayout({
       <body className="antialiased font-sans">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <TooltipProvider delay={200}>
-            {children}
-            <Toaster />
+            <AuthProvider>
+              {children}
+              <Toaster />
+            </AuthProvider>
           </TooltipProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}

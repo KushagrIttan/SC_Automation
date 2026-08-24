@@ -1,9 +1,8 @@
-// Data-access layer for precedents — talks to the FastAPI backend.
+// Data-access layer for precedents â€” talks to the FastAPI backend.
 import type { NoteSheetCategory, Precedent } from "@/lib/types"
 import { CATEGORY_LABELS } from "@/lib/api/notesheets"
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8001"
+import { apiFetch } from "@/lib/api/client"
 
 /** Raw shape returned by the FastAPI precedent endpoints. */
 export interface BackendPrecedent {
@@ -16,7 +15,7 @@ export interface BackendPrecedent {
 }
 
 function extractAmount(text: string): number {
-  const match = text.match(/₹\s?([\d,]+(?:\.\d+)?)\s*(?:lakhs?|L\b)?/i)
+  const match = text.match(/â‚¹\s?([\d,]+(?:\.\d+)?)\s*(?:lakhs?|L\b)?/i)
   if (!match) return 0
   let value = Number(match[1].replace(/,/g, ""))
   if (!Number.isFinite(value)) return 0
@@ -27,7 +26,7 @@ function extractAmount(text: string): number {
 function extractDepartment(text: string): string {
   const fromLine = text.match(/^FROM:\s*(.+)$/m)
   if (fromLine) return fromLine[1].trim()
-  return "—"
+  return "â€”"
 }
 
 function extractDate(text: string): string {
@@ -59,20 +58,19 @@ function deriveTitle(content: string): string {
 }
 
 export async function fetchPrecedents(): Promise<Precedent[]> {
-  const res = await fetch(`${API_BASE}/api/precedents`, { cache: "no-store" })
-  if (!res.ok) throw new Error(`Failed to fetch precedents: ${res.status}`)
-  const rows = (await res.json()) as BackendPrecedent[]
+  const rows = await apiFetch<BackendPrecedent[]>("/api/precedents", { cache: "no-store" })
   return rows.map(mapBackendPrecedent)
 }
 
 export async function fetchPrecedent(id: string): Promise<Precedent | null> {
-  const res = await fetch(`${API_BASE}/api/precedents/${encodeURIComponent(id)}`, {
-    cache: "no-store",
+  const raw = await apiFetch<BackendPrecedent | null>(
+    `/api/precedents/${encodeURIComponent(id)}`,
+    { cache: "no-store" }
+  ).catch((err) => {
+    if ((err as { status?: number }).status === 404) return null
+    throw err
   })
-  if (res.status === 404) return null
-  if (!res.ok) throw new Error(`Failed to fetch precedent: ${res.status}`)
-  const raw = (await res.json()) as BackendPrecedent
-  return mapBackendPrecedent(raw)
+  return raw ? mapBackendPrecedent(raw) : null
 }
 
 export async function fetchPrecedentsByIds(ids: string[]): Promise<Precedent[]> {

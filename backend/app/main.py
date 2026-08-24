@@ -20,9 +20,12 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 
 from .config import settings
-from .database import get_db, SessionLocal, Prof, Notesheet, _utcnow
+from .database import get_db, SessionLocal, User, Notesheet, _utcnow
+from .auth import get_current_user, require_roles
 from .approval_api import router as approval_router
 from .documents_api import router as documents_router
+from .auth_api import router as auth_router
+from .admin_api import router as admin_router
 from .llm import get_llm_provider, switch_provider
 
 log = logging.getLogger(__name__)
@@ -42,9 +45,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include approval sub-router (once!)
+# Include sub-routers (once!)
 app.include_router(approval_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
 
 # ---------------------------------------------------------------------------
 # Startup: embeddings, FAISS, category metadata
@@ -159,18 +164,58 @@ class LLMSettingsRequest(BaseModel):
 # Helpers
 # ---------------------------------------------------------------------------
 
+_AMOUNT_RE = re.compile(
+    r"(?:₹|rs\.?|inr)\s*([\d,]+(?:\.\d+)?)((?:\s*lakhs?)|(?:\s*crores?))?"
+    r"|([\d,]+(?:\.\d+)?)\s*(lakhs?|crores?)",
+    re.IGNORECASE,
+)
+
+
+def _parse_amount(raw: str, unit: str) -> int | None:
+    value = raw.replace(",", "")
+    try:
+        amount = float(value)
+    except ValueError:
+        return None
+    unit = (unit or "").strip().lower()
+    if unit.startswith("lakh"):
+        amount *= 100_000
+    elif unit.startswith("crore"):
+        amount *= 10_000_000
+    return int(amount) if amount else None
+
+
 def extract_request_details(request_text: str, category: str) -> dict:
-    """Rudimentary keyword extraction from the request text."""
+    """Pull structured fields (amount, item) out of the free-text request."""
     details: dict = {}
-    parts = request_text.split()
-    for i, part in enumerate(parts):
-        if part.lower() in ["₹", "rs", "rupees"] and i + 1 < len(parts):
-            amount_str = "".join(filter(str.isdigit, parts[i + 1]))
-            details["amount"] = int(amount_str) if amount_str else None
-        if part.lower() == "for" and i + 1 < len(parts):
-            details["item"] = parts[i + 1]
-        if part.lower() == "in" and i + 1 < len(parts):
-            details["department"] = parts[i + 1]
+
+    for match in _AMOUNT_RE.finditer(request_text):
+        symbol_amount, symbol_unit, bare_amount, bare_unit = match.groups()
+        if symbol_amount:
+            parsed = _parse_amount(symbol_amount, symbol_unit)
+        else:
+            parsed = _parse_amount(bare_amount, bare_unit)
+        if parsed:
+            details["amount"] = parsed
+            break
+
+    item_match = re.search(
+        r"\bfor\s+([A-Za-z0-9][A-Za-z0-9&\- ]{2,60}?)(?:[,.]|$|\sin\b|\sfor\b|\sat\b|\sbefore\b|\sof\s?(?:Rs|₹|INR))",
+        request_text,
+        re.IGNORECASE,
+    )
+    if item_match:
+        item = re.sub(r"\s+", " ", item_match.group(1)).strip(" -")
+        # Keep at most 6 words of the captured phrase.
+        words = item.split()
+        if len(words) > 6:
+            item = " ".join(words[:6])
+        details["item"] = item
+
+    dept_match = re.search(r"\b(?:in|by)\s+(?:the\s+)?([A-Z][A-Za-z&]+(?:\s+[A-Z][A-Za-z&]+){0,3})\s*(?:Lab|lab|Department)?", request_text)
+    if dept_match:
+        details["department"] = dept_match.group(1).strip()
+
     return details
 
 
@@ -232,12 +277,18 @@ def extract_rules_cited(draft_text: str) -> list:
 
 
 def _generate_template(request_details: dict, category: str) -> str:
-    template = f"TO: [Approver]\nFROM: [Requester]\nSUBJECT: Sanction for {category.replace('_', ' ').title()}\n\n"
-    template += f"Amount: ₹{request_details.get('amount', 'N/A')}\n"
-    template += f"Details: {request_details}\n\n"
-    template += "[Body citing precedents and rules]\n\n"
-    template += f"APPROVAL CHAIN: {get_approval_chain(request_details.get('amount', 0), category)}\n"
-    template += "SUPPORTING DOCS: [List required documents]"
+    chain = get_approval_chain(request_details.get("amount") or 0, category)
+    item = request_details.get("item", "the requested items")
+    template = f"TO: {chain[0] if chain else '[Approver]'}\nFROM: [Requester]\nSUBJECT: Sanction for {category.replace('_', ' ').title()} — {item}\n\n"
+    amount = request_details.get("amount")
+    if isinstance(amount, (int, float)):
+        template += f"Amount: ₹{amount:,}\n"
+    else:
+        template += "Amount: not stated\n"
+    template += f"Item: {item}\n"
+    if request_details.get("department"):
+        template += f"Department: {request_details['department']}\n"
+    template += "\nNOTE: The LLM backend was unavailable, so this is a static fallback template — regenerate once the LLM service is running.\n"
     return template
 
 
@@ -261,7 +312,8 @@ def health_check():
 # Routes: Notesheet CRUD
 # ---------------------------------------------------------------------------
 
-async def _generation_pipeline(request: NotesheetRequest, db: Session, emit) -> dict:
+async def _generation_pipeline(request: NotesheetRequest, db: Session, emit,
+                               requester_id: Optional[int] = None) -> dict:
     """Run the full drafting pipeline, calling emit(stage, status, **extra)
     at each real transition so both the sync and streaming endpoints share
     identical logic."""
@@ -340,6 +392,7 @@ async def _generation_pipeline(request: NotesheetRequest, db: Session, emit) -> 
             amount=amount if amount else None,
             requester_name=request.requester_name,
             department=request.department,
+            requester_id=requester_id,
             precedents_json=json.dumps(precedents_serializable),
             rules_json=json.dumps(rules_cited),
             approval_chain_json=json.dumps(approval_chain),
@@ -383,15 +436,19 @@ def _noop_emit(*args, **kwargs) -> None:
 
 
 @app.post("/api/notesheets/generate")
-async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(get_db)):
-    return await _generation_pipeline(request, db, _noop_emit)
+async def generate_notesheet(request: NotesheetRequest, db: Session = Depends(get_db),
+                             user: User = Depends(get_current_user)):
+    request.requester_name = request.requester_name or user.name
+    return await _generation_pipeline(request, db, _noop_emit, requester_id=user.id)
 
 
 @app.post("/api/notesheets/generate/stream")
-async def generate_notesheet_stream(request: NotesheetRequest, db: Session = Depends(get_db)):
+async def generate_notesheet_stream(request: NotesheetRequest, db: Session = Depends(get_db),
+                                    user: User = Depends(get_current_user)):
     """Same pipeline as /generate but emits newline-delimited JSON progress
     events as each real stage completes. Final line carries stage=complete
     with the full result payload (or stage=error)."""
+    request.requester_name = request.requester_name or user.name
 
     async def event_stream():
         loop = asyncio.get_running_loop()
@@ -403,7 +460,7 @@ async def generate_notesheet_stream(request: NotesheetRequest, db: Session = Dep
 
         async def runner():
             try:
-                result = await _generation_pipeline(request, db, emit)
+                result = await _generation_pipeline(request, db, emit, requester_id=user.id)
                 await queue.put(json.dumps({"stage": "complete", "result": result}))
             except HTTPException as e:
                 await queue.put(json.dumps({"stage": "error", "detail": e.detail}))
@@ -431,9 +488,18 @@ async def generate_notesheet_stream(request: NotesheetRequest, db: Session = Dep
 
 
 @app.get("/api/notesheets")
-def list_notesheets(db: Session = Depends(get_db)):
-    """Return all generated notesheets, newest first."""
+def list_notesheets(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Role-scoped listing: requesters see their own; profs add sheets routed
+    to them; dean/admin see everything."""
     rows = db.query(Notesheet).order_by(Notesheet.created_at.desc()).all()
+    if user.role in ("student", "club_lead"):
+        rows = [r for r in rows if r.requester_id == user.id]
+    elif user.role == "prof":
+        routed = {
+            sa.stage.notesheet_id
+            for sa in db.query(StageApprover).filter(StageApprover.prof_id == user.id).all()
+        }
+        rows = [r for r in rows if r.requester_id == user.id or r.id in routed]
     return [
         {
             "id": ns.id,
@@ -488,7 +554,7 @@ def get_notesheet(ns_id: str, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/precedents")
-def list_precedents():
+def list_precedents(user: User = Depends(require_roles("prof", "dean"))):
     """Return all precedents currently indexed in FAISS."""
     counts = _precedent_citation_counts()
     results = []
@@ -507,7 +573,7 @@ def list_precedents():
 
 
 @app.get("/api/precedents/{precedent_id}")
-def get_precedent(precedent_id: str):
+def get_precedent(precedent_id: str, user: User = Depends(require_roles("prof", "dean"))):
     """Return a single indexed precedent by its corpus id."""
     for cat, note in note_texts:
         if note.get("id") == precedent_id:
@@ -547,7 +613,8 @@ def _precedent_citation_counts() -> dict:
 # ---------------------------------------------------------------------------
 
 @app.get("/api/analytics")
-def get_analytics(db: Session = Depends(get_db)):
+def get_analytics(db: Session = Depends(get_db),
+                  user: User = Depends(require_roles("dean"))):
     """Real analytics computed from the notesheets table."""
     all_ns = db.query(Notesheet).all()
     total = len(all_ns)
@@ -622,7 +689,7 @@ def get_analytics(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/knowledge-base")
-def get_knowledge_base(q: Optional[str] = None):
+def get_knowledge_base(q: Optional[str] = None, user: User = Depends(require_roles())):
     """FAISS index stats + list of indexed documents (optionally filtered)."""
     counts = _precedent_citation_counts()
 
@@ -682,7 +749,7 @@ def get_knowledge_base(q: Optional[str] = None):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/knowledge-base/stats")
-def knowledge_base_stats():
+def knowledge_base_stats(user: User = Depends(require_roles())):
     """Corpus statistics for the Knowledge Base dashboard."""
     counts = _precedent_citation_counts()
 
@@ -771,7 +838,7 @@ def list_profs(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/settings/llm")
-def get_llm_settings():
+def get_llm_settings(user: User = Depends(require_roles())):
     """Return current LLM provider configuration."""
     provider = get_llm_provider()
     return {
@@ -785,7 +852,7 @@ def get_llm_settings():
 
 
 @app.put("/api/settings/llm")
-def update_llm_settings(req: LLMSettingsRequest):
+def update_llm_settings(req: LLMSettingsRequest, user: User = Depends(require_roles())):
     """Switch LLM provider at runtime."""
     try:
         provider = switch_provider(

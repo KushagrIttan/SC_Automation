@@ -1,4 +1,4 @@
-// Data-access layer for note sheets — talks to the FastAPI backend.
+// Data-access layer for note sheets â€” talks to the FastAPI backend.
 import type {
   NoteSheet,
   NoteSheetCategory,
@@ -6,10 +6,9 @@ import type {
   RuleCitation,
 } from "@/lib/types"
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8001"
+import { apiFetch, API_BASE, getToken } from "@/lib/api/client"
 
-// Map frontend display categories → backend slugs
+// Map frontend display categories â†’ backend slugs
 export const CATEGORY_SLUGS: Record<NoteSheetCategory, string> = {
   "Lab Equipment Purchase": "lab_equipment_purchase",
   "Event/Fest Expenditure": "event_expenditure",
@@ -87,8 +86,8 @@ export function mapBackendNoteSheet(raw: BackendNoteSheet): NoteSheet {
     id: raw.id,
     subject: deriveSubject(raw.request_text),
     category: CATEGORY_LABELS[raw.category] ?? (raw.category as NoteSheetCategory),
-    requester: raw.requester_name?.trim() || "—",
-    department: raw.department?.trim() || "—",
+    requester: raw.requester_name?.trim() || "â€”",
+    department: raw.department?.trim() || "â€”",
     amount: raw.amount ?? 0,
     status,
     currentStage,
@@ -99,7 +98,7 @@ export function mapBackendNoteSheet(raw: BackendNoteSheet): NoteSheet {
     draftSource: raw.draft_source,
     draftError: raw.error ?? null,
     justification: raw.request_text.trim(),
-    aiReasoning: `Retrieved ${raw.precedents_used.length} similar precedent note sheet(s) from the FAISS index, then drafted with ${sourceLabel}. Rules applied: ${raw.rules_cited.length > 0 ? raw.rules_cited.join(", ") : "none matched automatically"}. Approval chain suggested from amount thresholds: ${chain.length > 0 ? chain.join(" → ") : "none determined"}.`,
+    aiReasoning: `Retrieved ${raw.precedents_used.length} similar precedent note sheet(s) from the FAISS index, then drafted with ${sourceLabel}. Rules applied: ${raw.rules_cited.length > 0 ? raw.rules_cited.join(", ") : "none matched automatically"}. Approval chain suggested from amount thresholds: ${chain.length > 0 ? chain.join(" â†’ ") : "none determined"}.`,
     budgetItems: [],
     citations: toCitations(raw.rules_cited ?? []),
     requiredDocuments: (raw.documents_missing ?? []).map((name, i) => ({
@@ -119,19 +118,15 @@ export function mapBackendNoteSheet(raw: BackendNoteSheet): NoteSheet {
 }
 
 export async function fetchNoteSheets(): Promise<NoteSheet[]> {
-  const res = await fetch(`${API_BASE}/api/notesheets`, { cache: "no-store" })
-  if (!res.ok) throw new Error(`Failed to fetch note sheets: ${res.status}`)
-  const rows = (await res.json()) as BackendNoteSheet[]
+  const rows = await apiFetch<BackendNoteSheet[]>("/api/notesheets", { cache: "no-store" })
   return rows.map(mapBackendNoteSheet)
 }
 
 export async function fetchNoteSheet(id: string): Promise<NoteSheet | null> {
-  const res = await fetch(`${API_BASE}/api/notesheets/${encodeURIComponent(id)}`, {
-    cache: "no-store",
+  const raw = await apiFetch<BackendNoteSheet | null>(`/api/notesheets/${encodeURIComponent(id)}`, { cache: "no-store" }).catch((err) => {
+    if ((err as { status?: number }).status === 404) return null
+    throw err
   })
-  if (res.status === 404) return null
-  if (!res.ok) throw new Error(`Failed to fetch note sheet: ${res.status}`)
-  const raw = (await res.json()) as BackendNoteSheet
   return mapBackendNoteSheet(raw)
 }
 
@@ -162,16 +157,10 @@ function buildGenerateBody(input: GenerateDraftInput): string {
 export async function generateDraft(
   input: GenerateDraftInput
 ): Promise<NoteSheet> {
-  const res = await fetch(`${API_BASE}/api/notesheets/generate`, {
+  const raw = await apiFetch<BackendNoteSheet>("/api/notesheets/generate", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: buildGenerateBody(input),
+    json: JSON.parse(buildGenerateBody(input)),
   })
-  if (!res.ok) {
-    const msg = await res.text().catch(() => res.statusText)
-    throw new Error(`Draft generation failed: ${msg}`)
-  }
-  const raw = (await res.json()) as BackendNoteSheet
   return mapBackendNoteSheet(raw)
 }
 
@@ -192,7 +181,7 @@ export interface StageEvent {
 
 /**
  * Streams `/api/notesheets/generate/stream` (NDJSON). Every event reflects a
- * real backend transition — retrieval done, LLM started/finished, review done.
+ * real backend transition â€” retrieval done, LLM started/finished, review done.
  * Falls back to the non-streaming endpoint if the stream cannot even start.
  */
 export async function generateDraftStream(
@@ -204,7 +193,10 @@ export async function generateDraftStream(
   try {
     res = await fetch(`${API_BASE}/api/notesheets/generate/stream`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+      },
       body: buildGenerateBody(input),
       signal,
     })

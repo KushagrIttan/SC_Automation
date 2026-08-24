@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # --- Embeddings ---
     embedding_model: str = "all-MiniLM-L6-v2"
 
+    # --- Auth ---
+    auth_secret: str = "dev-secret-change-me-in-production"
+
     # --- Data ---
     data_dir: str = os.path.join(os.path.dirname(__file__), "..", "data")
 

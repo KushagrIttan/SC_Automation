@@ -1,9 +1,8 @@
-// LLM provider settings — talks to the FastAPI backend.
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8001"
+// LLM provider settings — admin-only endpoints.
+import { apiFetch } from "@/lib/api/client"
 
 export interface LLMSettings {
-  provider: "ollama" | "gemini"
+  provider: string
   model: string
   ollama_base_url: string
   ollama_model: string
@@ -12,32 +11,20 @@ export interface LLMSettings {
 }
 
 export async function fetchLLMSettings(): Promise<LLMSettings> {
-  const res = await fetch(`${API_BASE}/api/settings/llm`, {
-    cache: "no-store",
-  })
-  if (!res.ok) throw new Error(`Failed to fetch LLM settings: ${res.status}`)
-  return (await res.json()) as LLMSettings
+  return apiFetch<LLMSettings>("/api/settings/llm", { cache: "no-store" })
 }
 
 export interface UpdateLLMSettingsInput {
-  provider: "ollama" | "gemini"
+  provider: string
   gemini_api_key?: string
   gemini_model?: string
   ollama_base_url?: string
   ollama_model?: string
 }
 
-export async function updateLLMSettings(
-  input: UpdateLLMSettingsInput
-): Promise<{ status: string; provider: string; model: string }> {
-  const res = await fetch(`${API_BASE}/api/settings/llm`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  })
-  if (!res.ok) {
-    const msg = await res.text().catch(() => res.statusText)
-    throw new Error(msg || `Update failed: ${res.status}`)
-  }
-  return (await res.json()) as { status: string; provider: string; model: string }
+export async function updateLLMSettings(input: UpdateLLMSettingsInput) {
+  return apiFetch<{ status: string; provider: string; model: string }>(
+    "/api/settings/llm",
+    { method: "PUT", json: input }
+  )
 }

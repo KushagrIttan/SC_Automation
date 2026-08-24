@@ -1,6 +1,5 @@
-// Data-access layer for the approval workflow — talks to the FastAPI backend.
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8001"
+// Data-access layer for the approval workflow â€” talks to the FastAPI backend.
+import { apiFetch } from "@/lib/api/client"
 
 export interface ApprovalStatus {
   notesheet_id: string
@@ -19,52 +18,44 @@ export interface ApprovalStatus {
 }
 
 export async function fetchApprovalStatus(id: string): Promise<ApprovalStatus | null> {
-  const res = await fetch(
-    `${API_BASE}/api/notesheets/${encodeURIComponent(id)}/approval_status`,
-    { cache: "no-store" }
-  )
-  if (res.status === 404) return null
-  if (!res.ok) throw new Error(`Failed to fetch approval status: ${res.status}`)
-  return (await res.json()) as ApprovalStatus
+  return apiFetch<ApprovalStatus | null>(`/api/notesheets/${encodeURIComponent(id)}/approval_status`, {
+    cache: "no-store",
+  }).catch((err) => {
+    if ((err as { status?: number }).status === 404) return null
+    throw err
+  })
 }
 
 export async function submitNoteSheetForApproval(id: string): Promise<{ id: string; status: string }> {
-  const res = await fetch(
-    `${API_BASE}/api/notesheets/${encodeURIComponent(id)}/submit`,
-    { method: "POST" }
-  )
-  if (!res.ok) throw new Error(await res.text().catch(() => `Submit failed: ${res.status}`))
-  return (await res.json()) as { id: string; status: string }
+  return apiFetch<{ id: string; status: string }>(`/api/notesheets/${encodeURIComponent(id)}/submit`, {
+    method: "POST",
+  })
 }
 
 export async function approveNoteSheet(
   id: string,
   profId?: number
 ): Promise<{ id: string; status: string; stages_left: number }> {
-  const res = await fetch(
-    `${API_BASE}/api/notesheets/${encodeURIComponent(id)}/approve`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prof_id: profId }),
-    }
-  )
-  if (!res.ok) throw new Error(await res.text().catch(() => `Approve failed: ${res.status}`))
-  return (await res.json()) as { id: string; status: string; stages_left: number }
+  interface ApproveResp extends Record<string, unknown> {
+    id: string
+    status: string
+    stages_left: number
+    signature?: string | null
+    signed_by?: string
+  }
+  const out = await apiFetch<ApproveResp>(`/api/notesheets/${encodeURIComponent(id)}/approve`, {
+    method: "POST",
+    json: { prof_id: profId },
+  })
+  return { id: out.id, status: out.status, stages_left: out.stages_left, signature: out.signature }
 }
 
 export async function rejectNoteSheet(
   id: string,
   reason: string
 ): Promise<{ id: string; status: string; reason: string }> {
-  const res = await fetch(
-    `${API_BASE}/api/notesheets/${encodeURIComponent(id)}/reject`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason }),
-    }
-  )
-  if (!res.ok) throw new Error(await res.text().catch(() => `Reject failed: ${res.status}`))
-  return (await res.json()) as { id: string; status: string; reason: string }
+  return apiFetch<{ id: string; status: string; reason: string }>(`/api/notesheets/${encodeURIComponent(id)}/reject`, {
+    method: "POST",
+    json: { reason },
+  })
 }
