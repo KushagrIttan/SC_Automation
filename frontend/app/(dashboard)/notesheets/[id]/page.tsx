@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { NoteSheetDetail } from "@/components/notesheet/notesheet-detail"
 import { ApprovalActionPanel } from "@/components/notesheet/approval-action-panel"
+import { FinalPdfDownload } from "@/components/notesheet/final-pdf-download"
 import { useAuth } from "@/components/providers/auth-provider"
 import { fetchNoteSheet } from "@/lib/api/notesheets"
 import { fetchApprovalStatus } from "@/lib/api/approvals"
@@ -52,6 +53,7 @@ export default function NoteSheetDetailPage() {
 
   const liveNoteSheet = withLiveApprovalStatus(noteSheet, approvalStatus ?? null)
   const canDecide = user?.role === "prof" || user?.role === "dean" || user?.role === "admin"
+  const isOwner = user != null && liveNoteSheet.requesterId === user.id
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4">
@@ -62,6 +64,7 @@ export default function NoteSheetDetailPage() {
       <NoteSheetDetail
         noteSheet={liveNoteSheet}
         approvalPanel={liveNoteSheet.status === "Pending Approval" && canDecide ? <ApprovalActionPanel noteSheet={liveNoteSheet} /> : undefined}
+        headerAction={liveNoteSheet.status === "Approved" && isOwner ? <FinalPdfDownload noteSheetId={liveNoteSheet.id} /> : undefined}
       />
     </div>
   )

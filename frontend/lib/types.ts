@@ -79,6 +79,8 @@ export interface NoteSheet {
   amount: number
   status: NoteSheetStatus
   currentStage: string
+  /** users.id of the submitting owner; null on legacy rows. */
+  requesterId?: number | null
   createdAt: string
   updatedAt: string
   prompt: string

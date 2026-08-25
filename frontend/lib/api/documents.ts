@@ -1,5 +1,5 @@
 // Data-access layer for reference-document upload (PDF text/OCR extraction).
-import { apiFetch } from "@/lib/api/client"
+import { API_BASE, apiFetch, ApiError, getToken } from "@/lib/api/client"
 
 export interface ExtractResult {
   filename: string
@@ -45,4 +45,42 @@ export async function uploadNoteSheetDocument(notesheetId: string, file: File): 
     method: "POST",
     body: form,
   })
+}
+
+/**
+ * Downloads the final approved note-sheet PDF (signed approval copy followed
+ * by the uploaded supporting documents). Only the requester may download it,
+ * and only after every approval stage is complete — enforced by the backend.
+ */
+export async function downloadFinalNotesheetPdf(notesheetId: string): Promise<void> {
+  const token = getToken()
+  const res = await fetch(`${API_BASE}/api/notesheets/${encodeURIComponent(notesheetId)}/final-pdf`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    cache: "no-store",
+  })
+  if (!res.ok) {
+    let detail = `${res.status}`
+    try {
+      const data = await res.json()
+      detail =
+        typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail ?? data)
+    } catch {
+      /* keep status */
+    }
+    throw new ApiError(detail, res.status)
+  }
+
+  const disposition = res.headers.get("Content-Disposition") ?? ""
+  const filename =
+    disposition.match(/filename="([^"]+)"/)?.[1] ?? `${notesheetId}-approved-notesheet.pdf`
+
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement("a")
+  anchor.href = url
+  anchor.download = filename
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(url)
 }

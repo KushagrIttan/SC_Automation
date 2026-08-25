@@ -42,6 +42,7 @@ export interface BackendNoteSheet {
   status: string
   amount: number | null
   requester_name?: string | null
+  requester_id?: number | null
   department?: string | null
   precedents_used: { id: string; category?: string; excerpt?: string }[]
   rules_cited: string[]
@@ -96,6 +97,7 @@ export function mapBackendNoteSheet(raw: BackendNoteSheet): NoteSheet {
     amount: raw.amount ?? 0,
     status,
     currentStage,
+    requesterId: raw.requester_id ?? null,
     createdAt: raw.created_at ?? new Date().toISOString(),
     updatedAt: raw.updated_at ?? raw.created_at ?? new Date().toISOString(),
     prompt: raw.request_text,
