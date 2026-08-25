@@ -49,12 +49,63 @@ def _sheet_stage_rows(db: Session, ns_id: str) -> list:
     )
 
 
+def _stage_approvers(db: Session, stage_name: str) -> list[User]:
+    """Find the eligible people for a generated approval role.
+
+    LLM routing names institutional roles rather than individual accounts. A
+    professor-stage is therefore available to all active professors; the
+    first signer records the decision and closes that stage. Dean/registrar
+    stages are reserved for dean/admin accounts when they exist.
+    """
+    is_senior_stage = any(label in stage_name.lower() for label in ("dean", "registrar", "director"))
+    roles = ("dean", "admin") if is_senior_stage else ("prof",)
+    candidates = (
+        db.query(User)
+        .filter(User.role.in_(roles), User.active.is_(True))
+        .order_by(User.id)
+        .all()
+    )
+    if not candidates and is_senior_stage:
+        candidates = (
+            db.query(User)
+            .filter(User.role == "prof", User.active.is_(True))
+            .order_by(User.id)
+            .all()
+        )
+    return candidates
+
+
+def _sync_stage_approvers(db: Session, stages: list) -> None:
+    """Backfill all eligible approvers for old and newly created stages."""
+    changed = False
+    for stage in stages:
+        # Never alter a stage after a signer has made its decision.
+        if any(row.status != "pending" for row in stage.stage_approvers):
+            continue
+        existing_ids = {row.prof_id for row in stage.stage_approvers}
+        for user in _stage_approvers(db, stage.name):
+            if user.id not in existing_ids:
+                db.add(StageApprover(stage_id=stage.id, prof_id=user.id))
+                changed = True
+    if changed:
+        db.commit()
+
+
+def _current_pending_stage(stages: list) -> ApprovalStage | None:
+    """Return the one stage that is currently allowed to act."""
+    return next(
+        (stage for stage in stages if any(row.status == "pending" for row in stage.stage_approvers)),
+        None,
+    )
+
+
 def _ensure_stages(db: Session, ns: Notesheet) -> list:
     """Create stages from the stored chain if missing, assigning the first
     active prof as each stage's initial approver."""
-    stages = _sheet_stage_rows(db, ns)
+    stages = _sheet_stage_rows(db, ns.id)
     if stages:
-        return stages
+        _sync_stage_approvers(db, stages)
+        return _sheet_stage_rows(db, ns.id)
 
     import json
 
@@ -63,13 +114,7 @@ def _ensure_stages(db: Session, ns: Notesheet) -> list:
     except Exception:
         chain = []
 
-    first_prof = (
-        db.query(User)
-        .filter(User.role == "prof", User.active.is_(True))
-        .order_by(User.id)
-        .first()
-    )
-    if not first_prof:
+    if not _stage_approvers(db, "professor"):
         raise HTTPException(
             400, "No professors registered — ask an admin to seed approver accounts"
         )
@@ -78,19 +123,11 @@ def _ensure_stages(db: Session, ns: Notesheet) -> list:
         stage = ApprovalStage(notesheet_id=ns.id, stage_order=i, name=name)
         db.add(stage)
         db.flush()
-        # Route final authority stages to a dean when one exists.
-        is_final = i == len(chain) and "dean" in name.lower() or "registrar" in name.lower()
-        approver = first_prof
-        if is_final:
-            dean = (
-                db.query(User)
-                .filter(User.role.in_(("dean", "admin")), User.active.is_(True))
-                .order_by(User.id)
-                .first()
-            )
-            if dean:
-                approver = dean
-        db.add(StageApprover(stage_id=stage.id, prof_id=approver.id))
+        approvers = _stage_approvers(db, name)
+        if not approvers:
+            raise HTTPException(400, f"No active approver is available for '{name}'")
+        for approver in approvers:
+            db.add(StageApprover(stage_id=stage.id, prof_id=approver.id))
     db.commit()
     return _sheet_stage_rows(db, ns.id)
 
@@ -120,7 +157,7 @@ def submit_notesheet(
     ns.status = "pending_approval"
     db.commit()
 
-    stages = _sheet_stage_rows(db, ns)
+    stages = _sheet_stage_rows(db, ns.id)
     return {
         "id": ns.id,
         "status": ns.status,
@@ -140,13 +177,11 @@ def approve_notesheet(ns_id: str, db: Session = Depends(get_db),
         ns.status = "pending_approval"
     if ns.status != "pending_approval":
         raise HTTPException(409, f"Cannot approve a note sheet in status '{ns.status}'")
+    if not user.signature_png:
+        raise HTTPException(400, "Add your signature in Settings before approving a note sheet")
 
     stages = _ensure_stages(db, ns)
-
-    current = next(
-        (s for s in stages if any(sa.status == "pending" for sa in s.stage_approvers)),
-        None,
-    )
+    current = _current_pending_stage(stages)
     if current is None:
         pending_left = (
             db.query(StageApprover)
@@ -206,10 +241,7 @@ def reject_notesheet(ns_id: str, body: RejectRequest, db: Session = Depends(get_
         raise HTTPException(409, f"Cannot reject a note sheet in status '{ns.status}'")
 
     stages = _ensure_stages(db, ns)
-    current = next(
-        (s for s in stages if any(sa.status == "pending" for sa in s.stage_approvers)),
-        None,
-    )
+    current = _current_pending_stage(stages)
     if current is None:
         raise HTTPException(409, "No pending stage to reject")
 
@@ -234,11 +266,34 @@ def reject_notesheet(ns_id: str, body: RejectRequest, db: Session = Depends(get_
     }
 
 
+@router.get("/approvals/inbox")
+def approval_inbox(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles("prof", "dean")),
+):
+    """Return sheets awaiting the signed-in approver at the active stage only."""
+    pending_sheets = (
+        db.query(Notesheet)
+        .filter(Notesheet.status == "pending_approval")
+        .order_by(Notesheet.updated_at.desc())
+        .all()
+    )
+    inbox = []
+    for notesheet in pending_sheets:
+        stage = _current_pending_stage(_ensure_stages(db, notesheet))
+        if not stage:
+            continue
+        is_assigned = any(row.prof_id == user.id and row.status == "pending" for row in stage.stage_approvers)
+        if user.role == "admin" or is_assigned:
+            inbox.append({"notesheet_id": notesheet.id, "stage": stage.name})
+    return {"items": inbox}
+
+
 @router.get("/notesheets/{ns_id}/approval_status")
 def get_approval_status(ns_id: str, db: Session = Depends(get_db),
                         user: User = Depends(get_current_user)):
     ns = _load_notesheet(db, ns_id)
-    stages = _sheet_stage_rows(db, ns)
+    stages = _sheet_stage_rows(db, ns.id)
     if not _can_view(user, ns, stages):
         raise HTTPException(403, "You do not have access to this note sheet")
     return {

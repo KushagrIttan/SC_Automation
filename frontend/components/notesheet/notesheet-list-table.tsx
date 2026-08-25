@@ -15,10 +15,12 @@ export function NoteSheetListTable({
   noteSheets,
   emptyLabel = "No note sheets found",
   variant = "default",
+  actions,
 }: {
   noteSheets: NoteSheet[]
   emptyLabel?: string
   variant?: "default" | "government"
+  actions?: (noteSheet: NoteSheet) => React.ReactNode
 }) {
   const router = useRouter()
   if (noteSheets.length === 0) {
@@ -78,15 +80,17 @@ export function NoteSheetListTable({
               <TableCell className={cn("whitespace-nowrap text-sm text-muted-foreground", variant === "government" && "px-3 py-4 text-[16px] text-foreground")}>
                 {formatDate(ns.updatedAt)}
               </TableCell>
-              <TableCell>
-                <Button
-                  size="icon-sm"
-                  variant="ghost"
-                  nativeButton={false}
-                  render={<Link href={`/notesheets/${ns.id}`} aria-label={`Open ${ns.id}`} onClick={(event) => event.stopPropagation()} />}
-                >
-                  <ArrowRight />
-                </Button>
+              <TableCell className={actions ? "min-w-44" : undefined}>
+                {actions ? actions(ns) : (
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    nativeButton={false}
+                    render={<Link href={`/notesheets/${ns.id}`} aria-label={`Open ${ns.id}`} onClick={(event) => event.stopPropagation()} />}
+                  >
+                    <ArrowRight />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}

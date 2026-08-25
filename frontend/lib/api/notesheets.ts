@@ -34,15 +34,21 @@ export interface BackendNoteSheet {
   category: string
   request_text: string
   draft_text: string
+  justification?: string | null
+  ai_reasoning?: string | null
+  budget_items?: { item: string; quantity: number; unit_cost: number; gst_percent: number }[]
+  wording_suggestions?: { before: string; after: string; reason: string }[]
   draft_source: string
   status: string
   amount: number | null
   requester_name?: string | null
+  requester_id?: number | null
   department?: string | null
   precedents_used: { id: string; category?: string; excerpt?: string }[]
   rules_cited: string[]
   approval_chain: string[]
   documents_missing: string[]
+  uploaded_documents?: { id: string; filename: string; content_type: string; size: number; created_at: string | null }[]
   error?: string | null
   created_at: string | null
   updated_at: string | null
@@ -91,22 +97,42 @@ export function mapBackendNoteSheet(raw: BackendNoteSheet): NoteSheet {
     amount: raw.amount ?? 0,
     status,
     currentStage,
+    requesterId: raw.requester_id ?? null,
     createdAt: raw.created_at ?? new Date().toISOString(),
     updatedAt: raw.updated_at ?? raw.created_at ?? new Date().toISOString(),
     prompt: raw.request_text,
     draftText: raw.draft_text,
     draftSource: raw.draft_source,
     draftError: raw.error ?? null,
-    justification: raw.request_text.trim(),
-    aiReasoning: `Retrieved ${raw.precedents_used.length} similar precedent note sheet(s) from the FAISS index, then drafted with ${sourceLabel}. Rules applied: ${raw.rules_cited.length > 0 ? raw.rules_cited.join(", ") : "none matched automatically"}. Approval chain suggested from amount thresholds: ${chain.length > 0 ? chain.join(" â†’ ") : "none determined"}.`,
-    budgetItems: [],
+    justification: raw.justification?.trim() || raw.request_text.trim(),
+    aiReasoning: raw.ai_reasoning?.trim() || `Retrieved ${raw.precedents_used.length} similar precedent note sheet(s) from the FAISS index, then drafted with ${sourceLabel}. Rules applied: ${raw.rules_cited.length > 0 ? raw.rules_cited.join(", ") : "none matched automatically"}. Approval chain suggested from amount thresholds: ${chain.length > 0 ? chain.join(" â†’ ") : "none determined"}.`,
+    budgetItems: (raw.budget_items ?? []).map((item, i) => ({
+      id: `budget-${i + 1}`,
+      item: item.item,
+      quantity: Number(item.quantity) || 0,
+      unitCost: Number(item.unit_cost) || 0,
+      gstPercent: Number(item.gst_percent) || 0,
+    })),
     citations: toCitations(raw.rules_cited ?? []),
     requiredDocuments: (raw.documents_missing ?? []).map((name, i) => ({
       id: `doc-${i}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
       name,
       attached: false,
     })),
-    wordingSuggestions: [],
+    uploadedDocuments: (raw.uploaded_documents ?? []).map((document) => ({
+      id: document.id,
+      filename: document.filename,
+      contentType: document.content_type,
+      size: document.size,
+      createdAt: document.created_at,
+    })),
+    wordingSuggestions: (raw.wording_suggestions ?? []).map((suggestion, i) => ({
+      id: `wording-${i + 1}`,
+      before: suggestion.before,
+      after: suggestion.after,
+      reason: suggestion.reason,
+      status: "pending" as const,
+    })),
     approvalStages: chain.map((name, i) => ({
       id: `stage-${i + 1}`,
       name,

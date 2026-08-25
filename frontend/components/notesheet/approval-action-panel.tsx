@@ -7,25 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { toast } from "sonner"
-import { useApproverDirectory } from "@/hooks/use-approvers"
 import { approveNoteSheet, rejectNoteSheet } from "@/lib/api/approvals"
 import type { NoteSheet } from "@/lib/types"
 
 export function ApprovalActionPanel({ noteSheet }: { noteSheet: NoteSheet }) {
   const router = useRouter()
-  const { approvers } = useApproverDirectory()
   const [mode, setMode] = useState<"idle" | "reject">("idle")
   const [reason, setReason] = useState("")
-  const [profId, setProfId] = useState<string>("")
   const [busy, setBusy] = useState(false)
   const [decided, setDecided] = useState<"approved" | "rejected" | null>(null)
 
@@ -37,7 +26,7 @@ export function ApprovalActionPanel({ noteSheet }: { noteSheet: NoteSheet }) {
     setBusy(true)
     try {
       if (kind === "approve") {
-        await approveNoteSheet(noteSheet.id, profId ? Number(profId) : undefined)
+        await approveNoteSheet(noteSheet.id)
         setDecided("approved")
         toast.success("Signed off. The note sheet moved along its approval chain.")
       } else {
@@ -88,23 +77,9 @@ export function ApprovalActionPanel({ noteSheet }: { noteSheet: NoteSheet }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <Field>
-          <FieldLabel htmlFor="approver-select">Signing as</FieldLabel>
-          <Select value={profId} onValueChange={setProfId}>
-            <SelectTrigger id="approver-select" className="w-full">
-              <SelectValue placeholder="Select your name" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {approvers.map((a) => (
-                  <SelectItem key={a.id} value={String(a.id)}>
-                    {a.name} — {a.position}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Field>
+        <p className="rounded-sm border border-border bg-muted/40 p-2.5 text-xs leading-relaxed text-muted-foreground">
+          Approving will attach your saved signature and record the decision against your account.
+        </p>
 
         {mode === "reject" && (
           <Field>

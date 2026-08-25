@@ -40,6 +40,14 @@ export interface RequiredDocument {
   attached: boolean
 }
 
+export interface UploadedDocument {
+  id: string
+  filename: string
+  contentType: string
+  size: number
+  createdAt: string | null
+}
+
 export type ApproverStatus = "Pending" | "Approved" | "Rejected"
 
 export interface Approver {
@@ -71,6 +79,8 @@ export interface NoteSheet {
   amount: number
   status: NoteSheetStatus
   currentStage: string
+  /** users.id of the submitting owner; null on legacy rows. */
+  requesterId?: number | null
   createdAt: string
   updatedAt: string
   prompt: string
@@ -85,6 +95,7 @@ export interface NoteSheet {
   budgetItems: BudgetLineItem[]
   citations: RuleCitation[]
   requiredDocuments: RequiredDocument[]
+  uploadedDocuments: UploadedDocument[]
   wordingSuggestions: WordingSuggestion[]
   approvalStages: ApprovalStage[]
   precedentIds: string[]

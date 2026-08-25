@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Boolean, Column, Integer, String, Enum, ForeignKey, TIMESTAMP, Float, Text
+from sqlalchemy import create_engine, Boolean, Column, Integer, String, Enum, ForeignKey, TIMESTAMP, Float, Text, LargeBinary, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from datetime import datetime, timezone
@@ -83,6 +83,12 @@ class Notesheet(Base):
     category = Column(String(50), nullable=False)
     request_text = Column(Text, nullable=False)
     draft_text = Column(Text, nullable=False)
+    # Generated sections are stored separately so each review panel shows only
+    # the content intended for it, rather than a single unstructured LLM reply.
+    justification = Column(Text, nullable=True)
+    ai_reasoning = Column(Text, nullable=True)
+    budget_items_json = Column(Text, nullable=True)
+    wording_suggestions_json = Column(Text, nullable=True)
     draft_source = Column(String(20), nullable=False, default='ollama')
     status = Column(String(30), nullable=False, default='draft')
     amount = Column(Float, nullable=True)
@@ -98,8 +104,43 @@ class Notesheet(Base):
     updated_at = Column(TIMESTAMP, nullable=False, default=_utcnow, onupdate=_utcnow)
 
 
+class NotesheetDocument(Base):
+    """Original PDF evidence attached to a note sheet for later review."""
+    __tablename__ = 'notesheet_documents'
+    id = Column(String(50), primary_key=True)
+    notesheet_id = Column(String(50), nullable=False, index=True)
+    filename = Column(String(255), nullable=False)
+    content_type = Column(String(100), nullable=False, default='application/pdf')
+    file_data = Column(LargeBinary, nullable=False)
+    uploaded_by = Column(Integer, nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False, default=_utcnow)
+
+
 # Create tables on import
 Base.metadata.create_all(bind=engine)
+
+
+def _migrate_notesheet_columns() -> None:
+    """Add section columns for installations created before structured drafts.
+
+    This project uses SQLite without a migration runner, so keep this small,
+    idempotent migration beside table creation. Existing note sheets remain
+    readable and use frontend fallbacks for fields they do not have.
+    """
+    existing = {column["name"] for column in inspect(engine).get_columns("notesheets")}
+    additions = {
+        "justification": "TEXT",
+        "ai_reasoning": "TEXT",
+        "budget_items_json": "TEXT",
+        "wording_suggestions_json": "TEXT",
+    }
+    with engine.begin() as connection:
+        for name, definition in additions.items():
+            if name not in existing:
+                connection.exec_driver_sql(f"ALTER TABLE notesheets ADD COLUMN {name} {definition}")
+
+
+_migrate_notesheet_columns()
 
 
 def get_db():
