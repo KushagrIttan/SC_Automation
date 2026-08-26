@@ -36,3 +36,27 @@ export async function searchKnowledgeBase(
   )
   return body.documents ?? []
 }
+
+export interface KnowledgeUploadResult {
+  id: string
+  subject: string
+  category: string
+  chars: number
+  pages: number
+  method: "text_layer" | "ocr"
+  amount: number | null
+}
+
+/** Uploads a PDF into a category's precedent corpus; indexed immediately. */
+export async function uploadKnowledgeDocument(
+  file: File,
+  category: string
+): Promise<KnowledgeUploadResult> {
+  const form = new FormData()
+  form.append("file", file)
+  form.append("category", category)
+  return apiFetch<KnowledgeUploadResult>("/api/knowledge-base/documents", {
+    method: "POST",
+    body: form,
+  })
+}

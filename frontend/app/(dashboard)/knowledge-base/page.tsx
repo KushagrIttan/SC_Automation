@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Database, FilePlus2, FileSearch, Files, Search, ShieldCheck, Sparkles, Trash2 } from "lucide-react"
+import { Database, FileSearch, Files, Search, ShieldCheck, Sparkles, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatDate, formatDateTime } from "@/lib/format"
 import { useKnowledgeDocuments, useKnowledgeSearch, useRetrievalStats } from "@/hooks/use-knowledge-base"
+import { AddDocumentButton } from "@/components/knowledge-base/add-document-dialog"
 
 export default function KnowledgeBasePage() {
   const [query, setQuery] = useState("")
@@ -28,10 +29,7 @@ export default function KnowledgeBasePage() {
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-primary">Knowledge Base</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">A trusted collection of rules, statutes, circulars, and approved note sheets for grounded drafting.</p>
         </div>
-        <Button className="border-0 bg-primary shadow-sm hover:bg-primary/90" onClick={() => toast.info("Document upload will be connected to the indexing API.")}>
-          <FilePlus2 data-icon="inline-start" />
-          Add document
-        </Button>
+        <AddDocumentButton />
       </div>
 
       <div className="relative overflow-hidden rounded-[2px] bg-primary px-5 py-5 text-primary-foreground shadow-sm">
